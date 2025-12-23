@@ -1,5 +1,5 @@
 from flask import Flask 
-from .config import Config
+from .config import Config, BASE_DIR
 from .extensions import db
 import os
 
@@ -11,9 +11,9 @@ def create_app(config_class: type = Config):
     @app.get("/health")
     def health():
         return "ok", 200
-    
-    @app.get("/")
-    def home():
-        return "It works", 200
+
+
+    from .routes import bp
+    app.register_blueprint(bp)
     
     return app

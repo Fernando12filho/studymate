@@ -1,35 +1,32 @@
-Core User Stories (MVP Only)
-These are the non-negotiable capabilities of the app.
+# Project Milestones
 
-Authentication
+## 🧱 Milestone 1 — MVP Foundations
+**Goal:** Build a functional core that allows users to upload content, organize it, and interact with it via AI.
 
-As a user, I can create an account
-As a user, I can log in and log out
+### Objectives
+- Establish project architecture
+- Implement core backend and database
+- Enable basic AI interaction with user-provided content
+- Define product scope clearly
 
-Topics
+### User Stories
+- As a user, I can create an account and log in
+- As a user, I can create a project/workspace
 
-As a user, I can create a study topic
-As a user, I can view my list of topics
+### Task Checklist
+- [  ] Initialize Flask project 
+- [ ] COnfigure env variables
+- [ ] Set up database connection 
+- [ ] Create User Model
+- [ ] Add password Hashing 
+- [ ] Create registration route (GET / POST)
+- [ ] Validate email to database
+- [ ] Display success and error message
 
-Resources
+Done when:
+- User exists in Database
+- Invalid input is rejected 
+- User can proceed to login
+---
 
-As a user, I can add a learning resource (link) to a topic
-As a user, I can mark a resource as not started / in progress / completed
 
-Notes
-
-As a user, I can write notes for a resource
-As a user, I can edit and view those notes later
-
-AI Exercises
-
-As a user, I can generate practice exercises for a topic using my notes
-If a feature does not support one of these stories, it is out of scope.
-
-🧱 Milestone 1 – Foundation & Auth
-- Project Setup
-- Database connection
-- Login authentication 
-    * Create account
-    * Log in and Log out
-- Redirection to dashboard (Protected page)

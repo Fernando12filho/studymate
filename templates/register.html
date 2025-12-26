@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Register - StudyMate{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-header">
+        <h1>Create Account</h1>
+        <p>Join StudyMate and start your learning journey</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if errors %}
+    <div class="alert alert-error">
+        {% for error in errors %}
+            {{ error }}
+            </br>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required placeholder="Choose a username">
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required placeholder="Create a password">
+        </div>
+        
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+        </div>
+        
+        <button type="submit" class="btn-login">Register</button>
+    </form>
+    
+    <div class="form-footer">
+        Already have an account? <a href="{{ url_for('main.home') }}">Login here</a>
+    </div>
+</div>
+{% endblock %}

@@ -9,9 +9,12 @@
         <p>Log in to continue your learning journey</p>
     </div>
 
-    {% if error %}
+    {% if errors %}
     <div class="alert alert-error">
-        {{ error }}
+        {% for e in errors%}
+            {{ e }}
+            </br>
+        {% endfor %}
     </div>
     {% endif %}
 
@@ -21,7 +24,7 @@
     </div>
     {% endif %}
 
-    <form method="POST">
+    <form action="{{ url_for('auth.login') }}" method="POST">
         <div class="form-group">
             <label for="email">Email</label>
             <input 
@@ -30,7 +33,6 @@
                 name="email" 
                 required 
                 placeholder="you@example.com"
-                value="{{ request.form.email or '' }}"
             >
         </div>
 
@@ -51,7 +53,7 @@
     </form>
 
     <div class="form-footer">
-        Don't have an account? <a href="">Sign up</a>
+        Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a>
     </div>
 </div>
 {% endblock %}

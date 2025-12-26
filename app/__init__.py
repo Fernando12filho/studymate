@@ -3,7 +3,7 @@ from flask import Flask, render_template
 from app.models import User
 from .config import Config, BASE_DIR
 from .extensions import db
-from flask_login import LoginManager
+from flask_login import LoginManager, login_required, current_user
 
 login_manager = LoginManager()
 
@@ -24,6 +24,7 @@ def create_app(config_class: type = Config):
         return User.query.get(int(user_id))
     
     @app.route("/dashboard")
+    @login_required
     def dashboard():
         return render_template("dashboard.html")
         

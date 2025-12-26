@@ -8,7 +8,7 @@ from app.models import User
 from sqlalchemy.exc import IntegrityError
 from .extensions import db
 from sqlalchemy import text
-from flask_login import login_user
+from flask_login import login_user, logout_user
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -74,9 +74,13 @@ def login():
             login_user(user)
             return redirect(url_for("dashboard"))
         return render_template("index.html", errors=errors)
+     
+     if request.method == "GET":
+         return render_template("index.html")
 
 @bp.route("/logout")
 def logout():
+    logout_user()
     return redirect(url_for("main.home"))
 
 @bp.route("/health/db")
@@ -86,3 +90,4 @@ def health_db():
         return {"db": "ok"}, 200
     except Exception as e:
         return {"db": "error", "detail": str(e)}, 500
+    

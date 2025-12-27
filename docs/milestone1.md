@@ -14,14 +14,14 @@
 - As a user, I can create a project/workspace
 
 ### Task Checklist
-- [  ] Initialize Flask project 
-- [ ] COnfigure env variables
-- [ ] Set up database connection 
-- [ ] Create User Model
-- [ ] Add password Hashing 
-- [ ] Create registration route (GET / POST)
-- [ ] Validate email to database
-- [ ] Display success and error message
+- [ x ] Initialize Flask project 
+- [ x ] COnfigure env variables
+- [ x ] Set up database connection 
+- [ x ] Create User Model
+- [ x ] Add password Hashing 
+- [ x ] Create registration route (GET / POST)
+- [ x ] Validate email to database
+- [ x ] Display success and error message
 
 Done when:
 - User exists in Database

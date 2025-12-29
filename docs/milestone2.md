@@ -14,16 +14,16 @@ Allow users to create and manage study projects (subjects, courses, exams).
 - As a user, I can rename or delete a project
 
 ### Tasks
-- [ ] Create `Project` model
+- [ x ] Create `Project` model
   - id
   - name
   - description
   - user_id (foreign key)
   - created_at
-- [ ] Define `User.projects` relationship
-- [ ] Create project CRUD routes
-- [ ] Display projects on dashboard
-- [ ] Restrict access to project owner
+- [ x ] Define `User.projects` relationship
+- [ x ] Create project CRUD routes
+- [ x ] Display projects on dashboard
+- [ x ] Restrict access to project owner
 
 ### Done When
 - Projects belong to users

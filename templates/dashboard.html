@@ -73,17 +73,14 @@
                     </button>
                 </div>
                 <div class="panel-body">
-                    <!-- Topics list -->
-                    {% if topics %}
-                        {% for topic in topics %}
-                        <div class="list-item" onclick=window.location.href="{{ url_for('topics.view_topic', topic_id=topic.id) }}">
-                            <span class="item-icon">📚</span>
-                            <span class="item-title">{{ topic.name }}</span>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="placeholder-text">No topics yet. Create your first topic to get started!</p>
-                    {% endif %}
+                    <!-- TODO: Insert topic list here -->
+                    <!-- Example structure:
+                    <div class="list-item">
+                        <span class="item-icon">📚</span>
+                        <span class="item-title">Computer Science</span>
+                    </div>
+                    -->
+                    <p class="placeholder-text">No topics yet. Create your first topic to get started!</p>
                 </div>
             </div>
             
@@ -199,7 +196,7 @@
                 <div class="welcome-card">
                     <h2>🎯 Get Started</h2>
                     <p>Create your first topic to organize your learning materials</p>
-                    <button class="btn-primary" onclick=window.location.href="{{ url_for('topics.create_topic') }}">Create Topic</button>
+                    <button class="btn-primary" onclick="createTopic()">Create Topic</button>
                 </div>
             </div>
         </div>
@@ -262,6 +259,21 @@
     </div>
 </div>
 
+<div class="modal-backdrop" id="modalBackdrop" style="display: none;" onclick="closeCreateTopicModal()"></div>
+<div class="create-topic-modal" id="createTopicModal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateTopicModal()">&times;</span>
+        <h2>Create Topic</h2>
+        <form id="createTopicForm">
+            <label for="topicName">Topic Name:</label>
+            <input type="text" id="topicName" name="topicName" required>
+            <label for="topicDescription">Description:</label>
+            <textarea id="topicDescription" name="topicDescription" required></textarea>
+            <button type="submit">Create</button>
+        </form>
+    </div>
+</div>
+
 <script>
     // Panel switching logic
     document.querySelectorAll('.icon-item').forEach(icon => {
@@ -303,6 +315,20 @@
             }
         });
     }
+
+    // Create Topic Modal
+    function createTopic() {
+        document.getElementById('modalBackdrop').style.display = 'block';
+        document.getElementById('createTopicModal').style.display = 'block';
+        console.log('Create Topic button clicked');
+    }
+
+    function closeCreateTopicModal() {
+        document.getElementById('modalBackdrop').style.display = 'none';
+        document.getElementById('createTopicModal').style.display = 'none';
+        console.log('Close Create Topic modal');
+    }
+
 </script>
 
 {% endblock %}

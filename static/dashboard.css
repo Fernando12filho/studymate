@@ -20,6 +20,25 @@ body {
     background: #1e1e1e;
 }
 
+/* Modal Backdrop */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+.create-topic-modal {
+    /* It has to be floating, in the middle of the screen above other elements */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
 /* ===================================
    LEFT SIDEBAR (Icon Bar + Panel)
    =================================== */
@@ -547,6 +566,8 @@ body {
 .btn-send:active {
     transform: scale(0.95);
 }
+
+
 
 /* ===================================
    RESPONSIVE DESIGN

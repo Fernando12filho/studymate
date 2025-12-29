@@ -5,6 +5,10 @@ from .models import Topic
 
 bp = Blueprint('topics', __name__, url_prefix='/topic')
 
+def get_all_user_topics():
+    """Helper function to get all main topics for sidebar"""
+    return Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
+
 @bp.route("/create", methods=['GET', 'POST'])
 @login_required
 def create_topic():
@@ -29,7 +33,11 @@ def create_topic():
         
         if not name:
             flash('Topic name is required', 'error')
-            return render_template('create_topic.html', parent_topic=parent_topic)
+            return render_template('create_topic.html', 
+                                   parent_topic=parent_topic,
+                                   all_topics=get_all_user_topics(),
+                                   current_topic=parent_topic,
+                                   active_panel='topics')
         
         new_topic = Topic(
             name=name,
@@ -44,7 +52,11 @@ def create_topic():
         flash(f'{"Subtopic" if parent_id else "Topic"} created successfully!', 'success')
         return redirect(url_for('topics.view_topic', topic_id=new_topic.id))
     
-    return render_template('create_topic.html', parent_topic=parent_topic)
+    return render_template('create_topic.html', 
+                           parent_topic=parent_topic,
+                           all_topics=get_all_user_topics(),
+                           current_topic=parent_topic,
+                           active_panel='topics')
 
 @bp.route("/<int:topic_id>")
 @login_required
@@ -56,7 +68,11 @@ def view_topic(topic_id):
         flash('Topic not found', 'error')
         return redirect(url_for('dashboard'))
     
-    return render_template('topic_detail.html', topic=topic)
+    return render_template('topic_detail.html', 
+                           topic=topic,
+                           all_topics=get_all_user_topics(),
+                           current_topic=topic,
+                           active_panel='topics')
 
 @bp.route("/<int:topic_id>/update", methods=['GET', 'POST'])
 @login_required
@@ -76,7 +92,11 @@ def update_topic(topic_id):
         flash('Topic updated successfully!', 'success')
         return redirect(url_for('topics.view_topic', topic_id=topic.id))
     
-    return render_template('create_topic.html', topic=topic)
+    return render_template('create_topic.html', 
+                           topic=topic,
+                           all_topics=get_all_user_topics(),
+                           current_topic=topic,
+                           active_panel='topics')
 
 @bp.route("/<int:topic_id>/delete", methods=['POST'])
 @login_required

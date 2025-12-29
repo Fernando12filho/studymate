@@ -27,8 +27,8 @@ def create_app(config_class: type = Config):
     @login_required
     def dashboard():
         from .models import Topic
-        topics = Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
-        return render_template("dashboard.html", topics=topics)
+        all_topics = Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
+        return render_template("dashboard.html", all_topics=all_topics, current_topic=None, active_panel='topics')
         
     from .routes import bp
     app.register_blueprint(bp)

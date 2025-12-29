@@ -26,12 +26,17 @@ def create_app(config_class: type = Config):
     @app.route("/dashboard")
     @login_required
     def dashboard():
-        return render_template("dashboard.html")
+        from .models import Topic
+        topics = Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
+        return render_template("dashboard.html", topics=topics)
         
     from .routes import bp
     app.register_blueprint(bp)
 
     from .auth import bp as auth
     app.register_blueprint(auth)
+    
+    from .subject import bp as topics
+    app.register_blueprint(topics)
 
     return app

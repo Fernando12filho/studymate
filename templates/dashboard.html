@@ -73,14 +73,17 @@
                     </button>
                 </div>
                 <div class="panel-body">
-                    <!-- TODO: Insert topic list here -->
-                    <!-- Example structure:
-                    <div class="list-item">
-                        <span class="item-icon">📚</span>
-                        <span class="item-title">Computer Science</span>
-                    </div>
-                    -->
-                    <p class="placeholder-text">No topics yet. Create your first topic to get started!</p>
+                    <!-- Topics list -->
+                    {% if topics %}
+                        {% for topic in topics %}
+                        <div class="list-item" onclick=window.location.href="{{ url_for('topics.view_topic', topic_id=topic.id) }}">
+                            <span class="item-icon">📚</span>
+                            <span class="item-title">{{ topic.name }}</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="placeholder-text">No topics yet. Create your first topic to get started!</p>
+                    {% endif %}
                 </div>
             </div>
             
@@ -196,25 +199,7 @@
                 <div class="welcome-card">
                     <h2>🎯 Get Started</h2>
                     <p>Create your first topic to organize your learning materials</p>
-                    <button class="btn-primary">Create Topic</button>
-                </div>
-                
-                <div class="welcome-card">
-                    <h2>📚 Add Resources</h2>
-                    <p>Add links to articles, videos, and other learning materials</p>
-                    <button class="btn-secondary">Add Resource</button>
-                </div>
-                
-                <div class="welcome-card">
-                    <h2>✍️ Take Notes</h2>
-                    <p>Write and organize notes for each resource you study</p>
-                    <button class="btn-secondary">View Notes</button>
-                </div>
-                
-                <div class="welcome-card">
-                    <h2>🤖 Practice with AI</h2>
-                    <p>Generate exercises based on your notes to test your knowledge</p>
-                    <button class="btn-secondary">Generate Exercises</button>
+                    <button class="btn-primary" onclick=window.location.href="{{ url_for('topics.create_topic') }}">Create Topic</button>
                 </div>
             </div>
         </div>

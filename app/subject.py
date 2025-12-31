@@ -72,7 +72,8 @@ def view_topic(topic_id):
                            topic=topic,
                            all_topics=get_all_user_topics(),
                            current_topic=topic,
-                           active_panel='topics')
+                           active_panel='topics', 
+                           active_topic=topic)
 
 @bp.route("/<int:topic_id>/update", methods=['GET', 'POST'])
 @login_required

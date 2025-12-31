@@ -1,0 +1,128 @@
+<!-- TOPIC PAGE -->
+<div class="topic-page">
+    <!-- Back to Dashboard Link -->
+    <a href="{{ url_for('dashboard') }}" class="back-to-dashboard">
+        ← Back to Dashboard
+    </a>
+
+    <!-- Topic Header -->
+    <div class="topic-header">
+        <h1>{{ active_topic.name }}</h1>
+        <p>{{ active_topic.description }}</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="topic-actions">
+        <form method="POST" action="">
+            <button type="button" class="btn-action">Add Note</button>
+        </form>
+        <form method="POST" action="">
+            <button type="button" class="btn-action">Add Resource</button>
+        </form>
+        <form method="POST" action="">
+            <button type="button" class="btn-action">Add Subtopic</button>
+        </form>
+    </div>
+
+    <!-- Topic Content -->
+    <div class="topic-content">
+        <!-- Resources Section -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <span class="section-icon">📚</span>
+                Resources
+            </h2>
+            {% if active_topic.resources %}
+                <div class="resources-grid">
+                    {% for resource in active_topic.resources %}
+                        <div class="resource-card">
+                            <div class="resource-thumbnail {{ resource.type|lower }}">
+                                {% if resource.type == 'PDF' %}
+                                    📄
+                                {% elif resource.type == 'Image' %}
+                                    🖼️
+                                {% elif resource.type == 'Video' %}
+                                    🎥
+                                {% elif resource.type == 'Link' %}
+                                    🔗
+                                {% else %}
+                                    📎
+                                {% endif %}
+                            </div>
+                            <div class="resource-info">
+                                <div class="resource-title">{{ resource.title or 'Untitled Resource' }}</div>
+                                <div class="resource-type">{{ resource.type or 'File' }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <p>No resources added yet. Click "Add Resource" to include learning materials.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Notes Section -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <span class="section-icon">📝</span>
+                Notes
+            </h2>
+            {% if active_topic.notes %}
+                <div class="notes-grid">
+                    {% for note in active_topic.notes %}
+                        <div class="note-card">
+                            <div class="note-header">
+                                <span class="note-icon">📝</span>
+                                <div class="note-title">{{ note.title or 'Untitled Note' }}</div>
+                            </div>
+                            <div class="note-content">
+                                {{ note.content or 'No content yet...' }}
+                            </div>
+                            <div class="note-meta">
+                                Last edited: {{ note.updated_at.strftime('%b %d, %Y') if note.updated_at else 'Never' }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <p>No notes created yet. Click "Add Note" to start taking notes.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Subtopics Section -->
+        <div class="content-section">
+            <h2 class="section-title">
+                <span class="section-icon">🗂️</span>
+                Subtopics
+            </h2>
+            {% if active_topic.subtopics %}
+                <div class="subtopics-grid">
+                    {% for subtopic in active_topic.subtopics %}
+                        <div class="subtopic-card">
+                            <div class="subtopic-icon">
+                                {{ subtopic.emoji or '📌' }}
+                            </div>
+                            <div class="subtopic-content">
+                                <div class="subtopic-title">{{ subtopic.name }}</div>
+                                <div class="subtopic-description">
+                                    {{ subtopic.description or 'No description provided' }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">🗂️</div>
+                    <p>No subtopics created yet. Click "Add Subtopic" to organize this topic further.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

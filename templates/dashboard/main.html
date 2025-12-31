@@ -1,0 +1,43 @@
+<!-- MAIN CONTENT AREA -->
+<div class="main-content">
+    <div class="content-header">
+        <h1 class="content-title">My Topics</h1>
+        <div class="breadcrumb">
+            <span>Dashboard</span>
+        </div>
+    </div>
+
+    <div class="content-body">
+        {% if not all_topics %}
+            <!-- Welcome state when no topics exist -->
+            <div class="welcome-section">
+                <div class="welcome-card">
+                    <div>
+                        <h2>🎯 Welcome to StudyMate</h2>
+                        <p>Get started by creating your first topic to organize your learning materials, notes, and resources.</p>
+                    </div>
+                    <button class="btn-primary" onclick="createTopic()">Create Your First Topic</button>
+                </div>
+            </div>
+        {% else %}
+            <!-- Topics grid when topics exist -->
+            <div class="topics-grid">
+                {% for topic in all_topics %}
+                    <div class="topic-card" onclick="{{ url_for('topics.view_topic', topic_id=topic.id) }}">
+                        <h3>{{ topic.name }}</h3>
+                        <p>{{ topic.description }}</p>
+                        <button class="btn-secondary" onclick="event.stopPropagation(); location.href='{{ url_for('topics.view_topic', topic_id=topic.id) }}'">
+                            View Topic →
+                        </button>
+                    </div>
+                {% endfor %}
+                
+                <!-- Add new topic card -->
+                <div class="topic-card add-topic-card" onclick="createTopic()">
+                    <div class="add-topic-icon">+</div>
+                    <h3>Create New Topic</h3>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>

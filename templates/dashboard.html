@@ -182,23 +182,35 @@
                 <span>Dashboard</span>
             </div>
         </div>
+
         
         <div class="content-body">
-            <!-- TODO: Insert main content here based on selected item -->
-            <!-- This is where you'll display:
-                 - Topic details and resources
-                 - Resource content and notes editor
-                 - Exercise viewer
-                 - Settings forms
-            -->
-            
-            <div class="welcome-section">
-                <div class="welcome-card">
-                    <h2>🎯 Get Started</h2>
-                    <p>Create your first topic to organize your learning materials</p>
-                    <button class="btn-primary" onclick="createTopic()">Create Topic</button>
+            {% if not all_topics %}
+                <div class="welcome-section">
+                    <div class="welcome-card">
+                        <h2>🎯 Get Started</h2>
+                        <p>Create your first topic to organize your learning materials</p>
+                        <button class="btn-primary" onclick="createTopic()">Create Topic</button>
+                    </div>
                 </div>
-            </div>
+            {% else %}
+            {% for topic in all_topics %}
+                <div class="content-body">
+                    <div class="welcome-card">
+                        <h3>{{ topic.name }}</h3>
+                        <p>{{ topic.description }}</p>
+                        <button class="btn-secondary" onclick="">View Topic</button>
+                    </div>
+                </div>
+            {% endfor %}
+                <div class="content-body">
+                    <div class="welcome-section">
+                        <div class="welcome-card">
+                            <button class="btn-primary" onclick="createTopic()">Create Topic</button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
     
@@ -264,11 +276,12 @@
     <div class="modal-content">
         <span class="close" onclick="closeCreateTopicModal()">&times;</span>
         <h2>Create Topic</h2>
-        <form id="createTopicForm">
-            <label for="topicName">Topic Name:</label>
-            <input type="text" id="topicName" name="topicName" required>
-            <label for="topicDescription">Description:</label>
-            <textarea id="topicDescription" name="topicDescription" required></textarea>
+        <!-- <form action="{{ url_for('auth.login') }}" method="POST"> -->
+        <form id="createTopicForm" action="{{ url_for('topics.create_topic') }}" method="POST">
+            <label for="name">Topic Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
             <button type="submit">Create</button>
         </form>
     </div>

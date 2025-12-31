@@ -33,7 +33,7 @@ def create_topic():
         
         if not name:
             flash('Topic name is required', 'error')
-            return render_template('create_topic.html', 
+            return render_template('dashboard.html', 
                                    parent_topic=parent_topic,
                                    all_topics=get_all_user_topics(),
                                    current_topic=parent_topic,
@@ -52,7 +52,7 @@ def create_topic():
         flash(f'{"Subtopic" if parent_id else "Topic"} created successfully!', 'success')
         return redirect(url_for('topics.view_topic', topic_id=new_topic.id))
     
-    return render_template('create_topic.html', 
+    return render_template('dashboard.html', 
                            parent_topic=parent_topic,
                            all_topics=get_all_user_topics(),
                            current_topic=parent_topic,
@@ -68,7 +68,7 @@ def view_topic(topic_id):
         flash('Topic not found', 'error')
         return redirect(url_for('dashboard'))
     
-    return render_template('topic_detail.html', 
+    return render_template('dashboard.html', 
                            topic=topic,
                            all_topics=get_all_user_topics(),
                            current_topic=topic,

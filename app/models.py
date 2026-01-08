@@ -31,14 +31,113 @@ class Topic(db.Model):
     
     # Parent topic relationship (for subtopics)
     parent_topic_id: Mapped[int | None] = mapped_column(ForeignKey("topic.id"), nullable=True)
-    subtopics = relationship("Topic", backref=db.backref('parent_topic', remote_side=[id]), cascade="all, delete-orphan")
-    
+    subtopics: Mapped[list["Topic"]] = relationship(
+        cascade="all, delete-orphan",
+        backref=db.backref("parent_topic", remote_side=[id])
+    )
     def __repr__(self) -> str:
         return f"<Topic {self.id} {self.name}>"
     
     def is_subtopic(self):
         """Check if this topic is a subtopic"""
         return self.parent_topic_id is not None
-
     
+class Resource(db.Model):
+    __tablename__ = "resource"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    title: Mapped[str] = mapped_column(db.String(200), nullable=False)
+
+    resource_type: Mapped[str] = mapped_column(
+        db.String(50),
+        nullable=False
+        # examples: "pdf", "link", "video", "image"
+    )
+
+    url: Mapped[str | None] = mapped_column(db.Text)
+    file_path: Mapped[str | None] = mapped_column(db.Text)
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    # Ownership
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user_table.id"),
+        nullable=False,
+        index=True
+    )
+
+    topic_id: Mapped[int] = mapped_column(
+        ForeignKey("topic.id"),
+        nullable=False,
+        index=True
+    )
+
+    user = relationship("User")
+    topic = relationship("Topic", backref="resources")
+
+class Note(db.Model):
+    __tablename__ = "note"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    title: Mapped[str] = mapped_column(db.String(200), nullable=False)
+    content: Mapped[str] = mapped_column(db.Text, nullable=False)
+
+    is_ai_generated: Mapped[bool] = mapped_column(default=False)
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    # Ownership
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user_table.id"),
+        nullable=False,
+        index=True
+    )
+
+    topic_id: Mapped[int] = mapped_column(
+        ForeignKey("topic.id"),
+        nullable=False,
+        index=True
+    )
+
+    user = relationship("User")
+    topic = relationship("Topic", backref="notes")
+
+class Flashcard(db.Model):
+    __tablename__ = "flashcard"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    question: Mapped[str] = mapped_column(db.Text, nullable=False)
+    answer: Mapped[str] = mapped_column(db.Text, nullable=False)
+
+    difficulty: Mapped[int] = mapped_column(default=1)
+    # 1 = easy, 5 = hard
+
+    last_reviewed_at: Mapped[datetime | None]
+    next_review_at: Mapped[datetime | None]
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    # Ownership
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user_table.id"),
+        nullable=False,
+        index=True
+    )
+
+    topic_id: Mapped[int] = mapped_column(
+        ForeignKey("topic.id"),
+        nullable=False,
+        index=True
+    )
+
+    user = relationship("User")
+    topic = relationship("Topic", backref="flashcards")
+
 

@@ -61,6 +61,7 @@ def create_topic():
 @bp.route("/<int:topic_id>")
 @login_required
 def view_topic(topic_id):
+    print("Viewing topic:", topic_id)
     """View a topic detail page"""
     topic = Topic.query.filter_by(id=topic_id, user_id=current_user.id).first()
     

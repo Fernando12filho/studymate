@@ -24,8 +24,20 @@ Allow users to create and manage study projects (subjects, courses, exams).
 - [ x ] Create project CRUD routes
 - [ x ] Display projects on dashboard
 - [ x ] Restrict access to project owner
+- [ x ] Create delete Button 
+(Both either on the card at the dashboard page and at the topic page itself)
+- [ x ] Make sure they are working
 
 ### Done When
 - Projects belong to users
 - Users only see their own projects
 - Full create/read/delete flow works
+
+
+
+
+
+------------------------------
+TO WORK LATER:
+- [ ] Create edit button
+- [ ] When loggin out, and go to register page, it appears all past request allerts, example: topic deleted successfully

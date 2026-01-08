@@ -17,11 +17,9 @@ Enable users to add learning material to projects.
 - created_at
 
 ### Tasks
-- [ ] Create Content model
-- [ ] Project → Content relationship
-- [ ] Add content creation form (textarea)
-- [ ] List content per project
-- [ ] Create content detail page
+- [ x ] Logout route
+- [ ] Study if database is set correctly, table for all subjects, all together
+- [ ] Create routes to add notes
 
 ### Done When
 - Projects contain multiple content items

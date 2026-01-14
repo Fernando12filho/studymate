@@ -36,7 +36,7 @@ def create_app(config_class: type = Config):
     from .auth import bp as auth
     app.register_blueprint(auth)
     
-    from .subject import bp as topics
+    from .topic import bp as topics
     app.register_blueprint(topics)
 
     return app

@@ -13,15 +13,9 @@
 
     <!-- Action Buttons -->
     <div class="topic-actions">
-        <form method="POST" action="">
-            <button type="button" class="btn-action">Add Note</button>
-        </form>
-        <form method="POST" action="">
-            <button type="button" class="btn-action">Add Resource</button>
-        </form>
-        <form method="POST" action="">
-            <button type="button" class="btn-action">Add Subtopic</button>
-        </form>
+        <a href="{{ url_for('topics.create_note', topic_id=active_topic.id) }}" method="GET" class="btn-action">Add Note</a>
+        <a href="#" onclick="addResource(); return false;" class="btn-action">Add Resource</a>
+        <a href="#" onclick="addSubtopic(); return false;" class="btn-action">Add Subtopic</a>
     </div>
 
     <!-- Topic Content -->
@@ -73,18 +67,7 @@
             {% if active_topic.notes %}
                 <div class="notes-grid">
                     {% for note in active_topic.notes %}
-                        <div class="note-card">
-                            <div class="note-header">
-                                <span class="note-icon">📝</span>
-                                <div class="note-title">{{ note.title or 'Untitled Note' }}</div>
-                            </div>
-                            <div class="note-content">
-                                {{ note.content or 'No content yet...' }}
-                            </div>
-                            <div class="note-meta">
-                                Last edited: {{ note.updated_at.strftime('%b %d, %Y') if note.updated_at else 'Never' }}
-                            </div>
-                        </div>
+                        <span class="note-icon">📝</span><a href="{{ url_for('topics.view_note', note_id=note.id) }}">{{ note.title }}.{{ note.created_at }}</a>
                     {% endfor %}
                 </div>
             {% else %}
@@ -126,3 +109,23 @@
         </div>
     </div>
 </div>
+<script>
+    function createNote() {
+        // Logic to create a new note
+        document.getElementById('modalBackdrop').style.display = 'block';
+        console.log('Create Note button clicked');
+    }
+
+    function addResource() {
+        // Logic to add a new resource
+        document.getElementById('modalBackdrop').style.display = 'block';
+        console.log('Add Resource button clicked');
+    }
+
+    function addSubtopic() {
+        // Logic to add a new subtopic
+        document.getElementById('modalBackdrop').style.display = 'block';
+        console.log('Add Subtopic button clicked');
+    }
+
+</script>

@@ -65,11 +65,14 @@
                 Notes
             </h2>
             {% if active_topic.notes %}
-                <div class="notes-grid">
                     {% for note in active_topic.notes %}
-                        <span class="note-icon">📝</span><a href="{{ url_for('topics.view_note', note_id=note.id) }}">{{ note.title }}.{{ note.created_at }}</a>
+                        <a href="{{ url_for('topics.view_note', note_id=note.id) }}">{{ note.title }}.{{ note.created_at }}</a>
+                        <!-- Create delete button -->
+                        <form action="{{ url_for('topics.delete_note', note_id=note.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="toolbar-btn" onclick="return confirm('Are you sure you want to delete this note?')">Delete</button>
+                        </form>
+                        </br>
                     {% endfor %}
-                </div>
             {% else %}
                 <div class="empty-state">
                     <div class="empty-state-icon">📝</div>

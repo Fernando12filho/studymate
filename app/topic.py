@@ -1,6 +1,6 @@
 import datetime
 from .extensions import db
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .models import Topic, Note
 
@@ -185,7 +185,7 @@ def delete_subtopic(topic_id):
 
 @bp.route("/<int:topic_id>/create_note", methods=['GET', 'POST'])
 @login_required
-def create_note(topic_id):
+def create_note(topic_id) :
     # """Create a new note for a topic"""
     # topic = Topic.query.filter_by(id=topic_id, user_id=current_user.id).first()
 
@@ -211,36 +211,44 @@ def create_note(topic_id):
         print("Create note for topic:", topic_id)
     return render_template('notes.html', topic_id=topic_id)
 
-@bp.route("/<int:topic_id>/save_note", methods=['POST'])
+@bp.route("/<int:topic_id>/note", methods=["POST"])
+@bp.route("/<int:topic_id>/note/<int:note_id>", methods=["POST"])
 @login_required
 def save_note(topic_id):
-    """Save a note for a topic"""
-    topic = Topic.query.filter_by(id=topic_id, user_id=current_user.id).first()
+    # Function to save note only
+    if request.method == 'POST':
+        # data comes in json format
+        data = request.get_json()
+        title = data.get('title')
+        content = data.get('content')
 
-    if not topic:
-        flash('Topic not found', 'error')
-        return redirect(url_for('dashboard'))
+        note = Note(
+            title=title,
+            content=content,
+            user_id=current_user.id,
+            topic_id=topic_id
+        )
 
-    data = request.get_json()
-    title = data.get('title')
-    content = data.get('content')
-    is_ai_generated = data.get('is_ai_generated')
+        db.session.add(note)
+        db.session.commit()
 
-    print("Saving note:", title, content, is_ai_generated)
+        # Return JSON instead of redirect
+        return jsonify({'success': True, 'note_id': note.id})
 
-    new_note = Note(
-        title=title,
-        content=content,
-        is_ai_generated=is_ai_generated,
-        user_id=current_user.id,
-        topic_id=topic.id
-    )
+@bp.route("/notes/<int:note_id>/update", methods=["POST"])
+@login_required
+def update_note(note_id):
+    note = Note.query.filter_by(id=note_id, user_id=current_user.id).first()
+    if not note:
+        return jsonify({'success': False, 'error': 'Note not found'}), 404
 
-    db.session.add(new_note)
-    db.session.commit()
-
-    flash('Note created successfully!', 'success')
-    return redirect(url_for('topics.view_topic', topic_id=topic.id))
+    if request.method == 'POST':
+        data = request.get_json()
+        note.title = data.get('title')
+        note.content = data.get('content')
+        note.updated_at = datetime.datetime.utcnow()  # Update timestamp if you have this field
+        db.session.commit()
+        return jsonify({'success': True})
 
 # Route to view a specific note
 @bp.route("/notes/<int:note_id>")
@@ -251,3 +259,19 @@ def view_note(note_id):
         flash('Note not found', 'error')
         return redirect(url_for('dashboard'))
     return render_template('notes.html', note=note, topic_id=note.topic_id)
+
+
+# Route to delete note
+@bp.route("/notes/<int:note_id>/delete", methods=['POST'])
+@login_required
+def delete_note(note_id):
+    note = Note.query.filter_by(id=note_id, user_id=current_user.id).first()
+    if not note:
+        flash('Note not found', 'error')
+        return redirect(url_for('dashboard'))
+
+    db.session.delete(note)
+    db.session.commit()
+
+    flash('Note deleted successfully!', 'success')
+    return redirect(url_for('topics.view_topic', topic_id=note.topic_id))

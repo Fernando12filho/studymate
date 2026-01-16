@@ -112,6 +112,22 @@
         </div>
     </div>
 </div>
+<div class="modal-backdrop" id="modalBackdrop" style="display: none;" onclick="closeCreateTopicModal()"></div>
+<div class="create-resource-modal" id="createResourceModal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeCreateResourceModal()">&times;</span>
+        <h2>Create Resource</h2>
+        <form id="createResourceForm" action="" method="POST">
+            <label for="name">Resource Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea>
+            <label for="file">Upload File:</label>
+            <input type="file" id="file" name="file">
+            <button type="submit">Create</button>
+        </form>
+    </div>
+</div>
 <script>
     function createNote() {
         // Logic to create a new note
@@ -119,9 +135,15 @@
         console.log('Create Note button clicked');
     }
 
+    function closeCreateResourceModal() {
+        document.getElementById('modalBackdrop').style.display = 'none';
+        document.getElementById('createResourceModal').style.display = 'none';
+    }
+
     function addResource() {
         // Logic to add a new resource
         document.getElementById('modalBackdrop').style.display = 'block';
+        document.getElementById('createResourceModal').style.display = 'block';
         console.log('Add Resource button clicked');
     }
 

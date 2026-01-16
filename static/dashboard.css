@@ -42,6 +42,16 @@ body {
     max-width: 500px;
 }
 
+.create-resource-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 90%;
+    max-width: 500px;
+}
+
 .modal-content {
     background: #252526;
     border: 1px solid #3e3e42;

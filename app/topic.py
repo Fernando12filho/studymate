@@ -1,8 +1,7 @@
-import datetime
 from .extensions import db
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
-from .models import Topic, Note
+from .models import Topic
 
 bp = Blueprint('topic', __name__, url_prefix='/topic')
 

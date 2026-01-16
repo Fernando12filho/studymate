@@ -42,4 +42,7 @@ def create_app(config_class: type = Config):
     from .note import bp as note
     app.register_blueprint(note)
 
+    from .resource import bp as resource
+    app.register_blueprint(resource)
+
     return app

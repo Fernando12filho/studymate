@@ -20,7 +20,7 @@
         <span class="close" onclick="closeCreateTopicModal()">&times;</span>
         <h2>Create Topic</h2>
         <!-- <form action="{{ url_for('auth.login') }}" method="POST"> -->
-        <form id="createTopicForm" action="{{ url_for('topics.create_topic') }}" method="POST">
+        <form id="createTopicForm" action="{{ url_for('topic.create_topic') }}" method="POST">
             <label for="name">Topic Name:</label>
             <input type="text" id="name" name="name" required>
             <label for="description">Description:</label>

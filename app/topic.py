@@ -4,10 +4,10 @@ from flask import Blueprint, jsonify, render_template, request, redirect, url_fo
 from flask_login import login_required, current_user
 from .models import Topic, Note
 
-bp = Blueprint('topics', __name__, url_prefix='/topic')
+bp = Blueprint('topic', __name__, url_prefix='/topic')
 
-def get_all_user_topics():
-    """Helper function to get all main topics for sidebar"""
+def get_all_user_topic():
+    """Helper function to get all main topic for sidebar"""
     return Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
 
 @bp.route("/create", methods=['GET', 'POST'])
@@ -23,10 +23,10 @@ def create_topic():
             flash('Parent topic not found', 'error')
             return redirect(url_for('dashboard'))
         
-        # Check if parent is already a subtopic (prevent sub-sub-topics)
+        # Check if parent is already a subtopic (prevent sub-sub-topic)
         if parent_topic.is_subtopic():
             flash('Cannot create a subtopic of a subtopic', 'error')
-            return redirect(url_for('topics.view_topic', topic_id=parent_id))
+            return redirect(url_for('topic.view_topic', topic_id=parent_id))
     
     if request.method == 'POST':
         name = request.form.get('name')
@@ -36,9 +36,9 @@ def create_topic():
             flash('Topic name is required', 'error')
             return render_template('dashboard.html', 
                                    parent_topic=parent_topic,
-                                   all_topics=get_all_user_topics(),
+                                   all_topic=get_all_user_topic(),
                                    current_topic=parent_topic,
-                                   active_panel='topics')
+                                   active_panel='topic')
         
         new_topic = Topic(
             name=name,
@@ -51,13 +51,13 @@ def create_topic():
         db.session.commit()
         
         flash(f'{"Subtopic" if parent_id else "Topic"} created successfully!', 'success')
-        return redirect(url_for('topics.view_topic', topic_id=new_topic.id))
+        return redirect(url_for('topic.view_topic', topic_id=new_topic.id))
     
     return render_template('dashboard.html', 
                            parent_topic=parent_topic,
-                           all_topics=get_all_user_topics(),
+                           all_topic=get_all_user_topic(),
                            current_topic=parent_topic,
-                           active_panel='topics')
+                           active_panel='topic')
 
 @bp.route("/<int:topic_id>")
 @login_required
@@ -72,9 +72,9 @@ def view_topic(topic_id):
     
     return render_template('dashboard.html', 
                            topic=topic,
-                           all_topics=get_all_user_topics(),
+                           all_topic=get_all_user_topic(),
                            current_topic=topic,
-                           active_panel='topics', 
+                           active_panel='topic', 
                            active_topic=topic)
 
 @bp.route("/<int:topic_id>/update", methods=['GET', 'POST'])
@@ -93,13 +93,13 @@ def update_topic(topic_id):
         
         db.session.commit()
         flash('Topic updated successfully!', 'success')
-        return redirect(url_for('topics.view_topic', topic_id=topic.id))
+        return redirect(url_for('topic.view_topic', topic_id=topic.id))
     
     return render_template('create_topic.html', 
                            topic=topic,
-                           all_topics=get_all_user_topics(),
+                           all_topic=get_all_user_topic(),
                            current_topic=topic,
-                           active_panel='topics')
+                           active_panel='topic')
 
 @bp.route("/<int:topic_id>/delete", methods=['POST'])
 @login_required
@@ -119,26 +119,26 @@ def delete_topic(topic_id):
     
     # Redirect to parent topic if it was a subtopic, otherwise to dashboard
     if parent_id:
-        return redirect(url_for('topics.view_topic', topic_id=parent_id))
+        return redirect(url_for('topic.view_topic', topic_id=parent_id))
     return redirect(url_for('dashboard'))
 
-@bp.route("/<int:topic_id>/subtopics", methods=['GET'])
+@bp.route("/<int:topic_id>/subtopic", methods=['GET'])
 @login_required
-def view_subtopics(topic_id):
-    """View all subtopics of a topic"""
+def view_subtopic(topic_id):
+    """View all subtopic of a topic"""
     topic = Topic.query.filter_by(id=topic_id, user_id=current_user.id).first()
     
     if not topic:
         flash('Topic not found', 'error')
         return redirect(url_for('dashboard'))
     
-    subtopics = Topic.query.filter_by(parent_topic_id=topic_id).all()
+    subtopic = Topic.query.filter_by(parent_topic_id=topic_id).all()
     return render_template('dashboard.html', 
                            topic=topic,
-                           subtopics=subtopics,
-                           all_topics=get_all_user_topics(),
+                           subtopic=subtopic,
+                           all_topic=get_all_user_topic(),
                            current_topic=topic,
-                           active_panel='topics')
+                           active_panel='topic')
 
 @bp.route("/<int:topic_id>/create_subtopic", methods=['POST'])
 @login_required
@@ -165,7 +165,7 @@ def create_subtopic(topic_id):
         db.session.commit()
         
         flash('Subtopic created successfully!', 'success')
-        return redirect(url_for('topics.view_topic', topic_id=topic.id))
+        return redirect(url_for('topic.view_topic', topic_id=topic.id))
 
 @bp.route("/<int:topic_id>/delete_subtopic", methods=['POST'])
 @login_required
@@ -181,97 +181,5 @@ def delete_subtopic(topic_id):
     db.session.commit()
 
     flash('Subtopic deleted successfully!', 'success')
-    return redirect(url_for('topics.view_topic', topic_id=subtopic.parent_topic_id))
+    return redirect(url_for('topic.view_topic', topic_id=subtopic.parent_topic_id))
 
-@bp.route("/<int:topic_id>/create_note", methods=['GET', 'POST'])
-@login_required
-def create_note(topic_id) :
-    # """Create a new note for a topic"""
-    # topic = Topic.query.filter_by(id=topic_id, user_id=current_user.id).first()
-
-    # if not topic:
-    #     flash('Topic not found', 'error')
-    #     return redirect(url_for('dashboard'))
-
-    # title = request.form.get('title')
-    # content = request.form.get('content')
-
-    # new_note = Note(
-    #     title=title,
-    #     content=content,
-    #     user_id=current_user.id,
-    #     topic_id=topic.id
-    # )
-
-    # db.session.add(new_note)
-    # db.session.commit()
-
-    # flash('Note created successfully!', 'success')
-    if request.method == 'GET':
-        print("Create note for topic:", topic_id)
-    return render_template('notes.html', topic_id=topic_id)
-
-@bp.route("/<int:topic_id>/note", methods=["POST"])
-@bp.route("/<int:topic_id>/note/<int:note_id>", methods=["POST"])
-@login_required
-def save_note(topic_id):
-    # Function to save note only
-    if request.method == 'POST':
-        # data comes in json format
-        data = request.get_json()
-        title = data.get('title')
-        content = data.get('content')
-
-        note = Note(
-            title=title,
-            content=content,
-            user_id=current_user.id,
-            topic_id=topic_id
-        )
-
-        db.session.add(note)
-        db.session.commit()
-
-        # Return JSON instead of redirect
-        return jsonify({'success': True, 'note_id': note.id})
-
-@bp.route("/notes/<int:note_id>/update", methods=["POST"])
-@login_required
-def update_note(note_id):
-    note = Note.query.filter_by(id=note_id, user_id=current_user.id).first()
-    if not note:
-        return jsonify({'success': False, 'error': 'Note not found'}), 404
-
-    if request.method == 'POST':
-        data = request.get_json()
-        note.title = data.get('title')
-        note.content = data.get('content')
-        note.updated_at = datetime.datetime.utcnow()  # Update timestamp if you have this field
-        db.session.commit()
-        return jsonify({'success': True})
-
-# Route to view a specific note
-@bp.route("/notes/<int:note_id>")
-@login_required
-def view_note(note_id):
-    note = Note.query.filter_by(id=note_id, user_id=current_user.id).first()
-    if not note:
-        flash('Note not found', 'error')
-        return redirect(url_for('dashboard'))
-    return render_template('notes.html', note=note, topic_id=note.topic_id)
-
-
-# Route to delete note
-@bp.route("/notes/<int:note_id>/delete", methods=['POST'])
-@login_required
-def delete_note(note_id):
-    note = Note.query.filter_by(id=note_id, user_id=current_user.id).first()
-    if not note:
-        flash('Note not found', 'error')
-        return redirect(url_for('dashboard'))
-
-    db.session.delete(note)
-    db.session.commit()
-
-    flash('Note deleted successfully!', 'success')
-    return redirect(url_for('topics.view_topic', topic_id=note.topic_id))

@@ -27,8 +27,8 @@ def create_app(config_class: type = Config):
     @login_required
     def dashboard():
         from .models import Topic
-        all_topics = Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
-        return render_template("dashboard.html", all_topics=all_topics, current_topic=None, active_panel='topics')
+        all_topic = Topic.query.filter_by(user_id=current_user.id, parent_topic_id=None).order_by(Topic.created_at.desc()).all()
+        return render_template("dashboard.html", all_topic=all_topic, current_topic=None, active_panel='topic')
         
     from .routes import bp
     app.register_blueprint(bp)
@@ -36,7 +36,10 @@ def create_app(config_class: type = Config):
     from .auth import bp as auth
     app.register_blueprint(auth)
     
-    from .topic import bp as topics
-    app.register_blueprint(topics)
+    from .topic import bp as topic
+    app.register_blueprint(topic)
+
+    from .note import bp as note
+    app.register_blueprint(note)
 
     return app

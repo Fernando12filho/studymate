@@ -18,8 +18,10 @@ Enable users to add learning material to projects.
 
 ### Tasks
 - [ x ] Logout route
-- [ ] Study if database is set correctly, table for all subjects, all together
-- [ ] Create routes to add notes
+- [ x ] Study if database is set correctly, table for all subjects, all together
+- [ x ] Create routes to add notes
+- [  ] Create routes to add resources
+- [  ] Prepare phase 4
 
 ### Done When
 - Projects contain multiple content items

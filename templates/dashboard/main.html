@@ -17,7 +17,7 @@
     </div>
 
     <div class="content-body">
-        {% if not all_topics %}
+        {% if not all_topic %}
             <!-- Welcome state when no topics exist -->
             <div class="welcome-section">
                 <div class="welcome-card">
@@ -31,17 +31,17 @@
         {% else %}
             <!-- Topics grid when topics exist -->
             <div class="topics-grid">
-                {% for topic in all_topics %}
-                    <div class="topic-card" onclick="{{ url_for('topics.view_topic', topic_id=topic.id) }}">
+                {% for topic in all_topic %}
+                    <div class="topic-card" onclick="window.location.href='{{ url_for('topic.view_topic', topic_id=topic.id) }}'">
                         <div class="topic-card-header">
                             <h3>{{ topic.name }}</h3>
                         <!-- Create delete button and add it to the top right -->
-                            <form action="{{ url_for('topics.delete_topic', topic_id=topic.id) }}" method="POST">
+                            <form action="{{ url_for('topic.delete_topic', topic_id=topic.id) }}" method="POST">
                                 <button class="btn-delete" type="submit" onclick="event.stopPropagation();">🗑️</button>
                             </form>
                         </div>
-                        <p>{{ topic.description }}</p>
-                        <a class="btn-secondary" href="{{ url_for('topics.view_topic', topic_id=topic.id) }}">
+                        <p>{{ topic.description or 'No description' }}</p>
+                        <a class="btn-secondary" href="{{ url_for('topic.view_topic', topic_id=topic.id) }}" onclick="event.stopPropagation();">
                             View Topic →
                         </a>
                     </div>

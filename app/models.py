@@ -52,13 +52,24 @@ class Resource(db.Model):
     resource_type: Mapped[str] = mapped_column(
         db.String(50),
         nullable=False
-        # examples: "pdf", "link", "video", "image"
+        # "pdf" or "link"
     )
 
+    # For links
     url: Mapped[str | None] = mapped_column(db.Text)
+    
+    # For PDF files
     file_path: Mapped[str | None] = mapped_column(db.Text)
+    file_size: Mapped[int | None] = mapped_column(db.Integer)
+    original_filename: Mapped[str | None] = mapped_column(db.String(255))
+
+    status: Mapped[str] = mapped_column(db.String(20), default="active")
 
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
 
     # Ownership
     user_id: Mapped[int] = mapped_column(
@@ -75,6 +86,14 @@ class Resource(db.Model):
 
     user = relationship("User")
     topic = relationship("Topic", backref="resources")
+
+    def is_pdf(self) -> bool:
+        """Check if resource is a PDF file"""
+        return self.resource_type == "pdf" and self.file_path is not None
+    
+    def is_link(self) -> bool:
+        """Check if resource is a URL link"""
+        return self.resource_type == "link" and self.url is not None
 
 class Note(db.Model):
     __tablename__ = "note"

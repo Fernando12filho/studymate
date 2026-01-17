@@ -72,6 +72,7 @@ def login():
             errors.append("Invalid email or password")
         else:
             login_user(user)
+            errors=[]
             return redirect(url_for("dashboard"))
         return render_template("index.html", errors=errors)
      

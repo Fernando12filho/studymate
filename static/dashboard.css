@@ -899,24 +899,87 @@ a.btn-secondary {
 }
 
 .resource-card {
-    background: #252526;
+    background: #2d2d30;
     border: 1px solid #3e3e42;
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .resource-card:hover {
     border-color: #007acc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 122, 204, 0.2);
+}
+
+.resource-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #007acc 0%, #1b8ad7 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.resource-card:hover::before {
+    opacity: 1;
+}
+
+.resource-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.resource-delete-form {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.resource-card:hover .resource-delete-form {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.delete-btn {
+    background: #1e1e1e;
+    border: 1px solid #f48771;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    color: #f48771;
+    box-shadow: 0 2px 8px rgba(244, 135, 113, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.delete-btn:hover {
+    background: #f48771;
+    border-color: #f48771;
+    color: #1e1e1e;
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(244, 135, 113, 0.5);
+}
+
+.delete-btn:active {
+    transform: scale(0.95);
 }
 
 .resource-thumbnail {
     width: 100%;
     height: 140px;
-    background: linear-gradient(135deg, #2d2d30 0%, #3e3e42 100%);
+    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d30 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -926,20 +989,20 @@ a.btn-secondary {
     overflow: hidden;
 }
 
+.resource-thumbnail::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
 .resource-thumbnail.pdf {
-    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
-}
-
-.resource-thumbnail.image {
-    background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-}
-
-.resource-thumbnail.video {
-    background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
+    background: linear-gradient(135deg, #c62828 0%, #d32f2f 100%);
 }
 
 .resource-thumbnail.link {
-    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+    background: linear-gradient(135deg, #2e7d32 0%, #388e3c 100%);
 }
 
 .resource-thumbnail img {
@@ -949,24 +1012,34 @@ a.btn-secondary {
 }
 
 .resource-info {
-    padding: 12px;
+    padding: 14px 16px;
+    background: #252526;
 }
 
 .resource-title {
     font-size: 14px;
     color: #ffffff;
     margin-bottom: 6px;
-    font-weight: 600;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: 0.2px;
 }
 
 .resource-type {
     font-size: 11px;
     color: #858585;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
+    font-weight: 500;
+}
+
+.resource-size {
+    font-size: 10px;
+    color: #6a9fb5;
+    margin-top: 4px;
+    font-weight: 500;
 }
 
 /* Notes Grid */
@@ -978,62 +1051,129 @@ a.btn-secondary {
 }
 
 .note-card {
-    background: #252526;
+    background: #2d2d30;
     border: 1px solid #3e3e42;
-    border-radius: 8px;
-    padding: 16px;
-    min-height: 150px;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    border-radius: 6px;
+    min-height: 180px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .note-card:hover {
     border-color: #007acc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 122, 204, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 122, 204, 0.2);
+}
+
+.note-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4ec9b0 0%, #5ed1b8 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.note-card:hover::before {
+    opacity: 1;
+}
+
+.note-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 16px 18px;
+}
+
+.note-delete-form {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.note-card:hover .note-delete-form {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .note-header {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 
 .note-icon {
-    font-size: 24px;
+    font-size: 22px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .note-title {
-    font-size: 16px;
+    font-size: 15px;
     color: #ffffff;
-    font-weight: 600;
+    font-weight: 500;
     flex-grow: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 35px;
+    letter-spacing: 0.2px;
 }
 
-.note-content {
+.note-preview {
     font-size: 13px;
-    color: #858585;
+    color: #a0a0a0;
     line-height: 1.6;
     flex-grow: 1;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
+    margin-bottom: 14px;
 }
 
 .note-meta {
-    margin-top: 12px;
+    margin-top: auto;
     padding-top: 12px;
-    border-top: 1px solid #3e3e42;
+    border-top: 1px solid rgba(62, 62, 66, 0.5);
     font-size: 11px;
     color: #6a6a6a;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.note-date {
+    color: #858585;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.ai-badge {
+    background: rgba(78, 201, 176, 0.15);
+    color: #4ec9b0;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    border: 1px solid rgba(78, 201, 176, 0.3);
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(78, 201, 176, 0.1);
 }
 
 /* Subtopics Grid */

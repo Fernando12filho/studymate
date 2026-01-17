@@ -10,7 +10,11 @@ login_manager = LoginManager()
 def create_app(config_class: type = Config):
     app = Flask(__name__, instance_relative_config=True, template_folder="../templates", static_folder="../static")
     app.config.from_object(config_class)
+    
+    # Create necessary directories
     os.makedirs(app.instance_path, exist_ok=True)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    
     db.init_app(app)
     @app.get("/health")
     def health():

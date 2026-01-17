@@ -30,23 +30,43 @@
                 <div class="resources-grid">
                     {% for resource in active_topic.resources %}
                         <div class="resource-card">
-                            <div class="resource-thumbnail {{ resource.type|lower }}">
-                                {% if resource.type == 'PDF' %}
-                                    📄
-                                {% elif resource.type == 'Image' %}
-                                    🖼️
-                                {% elif resource.type == 'Video' %}
-                                    🎥
-                                {% elif resource.type == 'Link' %}
-                                    🔗
-                                {% else %}
-                                    📎
-                                {% endif %}
-                            </div>
-                            <div class="resource-info">
-                                <div class="resource-title">{{ resource.title or 'Untitled Resource' }}</div>
-                                <div class="resource-type">{{ resource.type or 'File' }}</div>
-                            </div>
+                            <a href="{{ url_for('resource.view_resource', resource_id=resource.id) }}" class="resource-link">
+                                <div class="resource-thumbnail {{ resource.resource_type|lower }}">
+                                    {% if resource.is_pdf() %}
+                                        📄
+                                    {% elif resource.is_link() %}
+                                        🔗
+                                    {% else %}
+                                        �
+                                    {% endif %}
+                                </div>
+                                <div class="resource-info">
+                                    <div class="resource-title">{{ resource.title or 'Untitled Resource' }}</div>
+                                    <div class="resource-type">
+                                        {% if resource.is_pdf() %}
+                                            PDF
+                                        {% elif resource.is_link() %}
+                                            Link
+                                        {% else %}
+                                            File
+                                        {% endif %}
+                                    </div>
+                                    {% if resource.file_size %}
+                                        <div class="resource-size">
+                                            {% if resource.file_size < 1024 %}
+                                                {{ resource.file_size }} B
+                                            {% elif resource.file_size < 1048576 %}
+                                                {{ "%.1f"|format(resource.file_size / 1024) }} KB
+                                            {% else %}
+                                                {{ "%.1f"|format(resource.file_size / 1048576) }} MB
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <form action="{{ url_for('resource.delete_resource', resource_id=resource.id) }}" method="POST" class="resource-delete-form">
+                                <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this resource?')" title="Delete resource">🗑️</button>
+                            </form>
                         </div>
                     {% endfor %}
                 </div>
@@ -65,14 +85,30 @@
                 Notes
             </h2>
             {% if active_topic.notes %}
+                <div class="notes-grid">
                     {% for note in active_topic.notes %}
-                        <a href="{{ url_for('note.view_note', note_id=note.id) }}">{{ note.title }}.{{ note.created_at }}</a>
-                        <!-- Create delete button -->
-                        <form action="{{ url_for('note.delete_note', note_id=note.id) }}" method="POST" style="display: inline;">
-                            <button type="submit" class="toolbar-btn" onclick="return confirm('Are you sure you want to delete this note?')">Delete</button>
-                        </form>
-                        </br>
+                        <div class="note-card">
+                            <a href="{{ url_for('note.view_note', note_id=note.id) }}" class="note-link">
+                                <div class="note-header">
+                                    <div class="note-icon">📝</div>
+                                    <div class="note-title">{{ note.title or 'Untitled Note' }}</div>
+                                </div>
+                                <div class="note-preview">
+                                    {{ note.content[:100] }}{% if note.content|length > 100 %}...{% endif %}
+                                </div>
+                                <div class="note-meta">
+                                    <span class="note-date">{{ note.created_at.strftime('%b %d, %Y') }}</span>
+                                    {% if note.is_ai_generated %}
+                                        <span class="ai-badge">🤖 AI</span>
+                                    {% endif %}
+                                </div>
+                            </a>
+                            <form action="{{ url_for('note.delete_note', note_id=note.id) }}" method="POST" class="note-delete-form">
+                                <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this note?')" title="Delete note">🗑️</button>
+                            </form>
+                        </div>
                     {% endfor %}
+                </div>
             {% else %}
                 <div class="empty-state">
                     <div class="empty-state-icon">📝</div>
@@ -112,19 +148,36 @@
         </div>
     </div>
 </div>
-<div class="modal-backdrop" id="modalBackdrop" style="display: none;" onclick="closeCreateTopicModal()"></div>
+<div class="modal-backdrop" id="modalBackdrop" style="display: none;" onclick="closeCreateResourceModal()"></div>
 <div class="create-resource-modal" id="createResourceModal" style="display: none;">
     <div class="modal-content">
         <span class="close" onclick="closeCreateResourceModal()">&times;</span>
-        <h2>Create Resource</h2>
-        <form id="createResourceForm" action="" method="POST">
-            <label for="name">Resource Name:</label>
-            <input type="text" id="name" name="name" required>
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" required></textarea>
-            <label for="file">Upload File:</label>
-            <input type="file" id="file" name="file">
-            <button type="submit">Create</button>
+        <h2>Add Resource</h2>
+        <form id="createResourceForm" action="{{ url_for('resource.create_resource', topic_id=active_topic.id) }}" method="POST" enctype="multipart/form-data">
+            <label for="title">Resource Title:</label>
+            <input type="text" id="title" name="title" required placeholder="Enter resource title">
+            
+            <label for="resource_type">Resource Type:</label>
+            <select id="resource_type" name="resource_type" required onchange="toggleResourceFields()">
+                <option value="">-- Select Type --</option>
+                <option value="link">Link/URL</option>
+                <option value="pdf">PDF Document</option>
+            </select>
+            
+            <!-- URL field (shown when type is 'link') -->
+            <div id="urlField" style="display: none;">
+                <label for="url">URL:</label>
+                <input type="url" id="url" name="url" placeholder="https://example.com">
+            </div>
+            
+            <!-- File upload field (shown when type is 'pdf') -->
+            <div id="fileField" style="display: none;">
+                <label for="file">Upload PDF:</label>
+                <input type="file" id="file" name="file" accept=".pdf">
+                <small style="color: #666;">Max file size: 50MB</small>
+            </div>
+            
+            <button type="submit">Create Resource</button>
         </form>
     </div>
 </div>
@@ -138,6 +191,10 @@
     function closeCreateResourceModal() {
         document.getElementById('modalBackdrop').style.display = 'none';
         document.getElementById('createResourceModal').style.display = 'none';
+        // Reset form
+        document.getElementById('createResourceForm').reset();
+        document.getElementById('urlField').style.display = 'none';
+        document.getElementById('fileField').style.display = 'none';
     }
 
     function addResource() {
@@ -151,6 +208,31 @@
         // Logic to add a new subtopic
         document.getElementById('modalBackdrop').style.display = 'block';
         console.log('Add Subtopic button clicked');
+    }
+
+    function toggleResourceFields() {
+        const resourceType = document.getElementById('resource_type').value;
+        const urlField = document.getElementById('urlField');
+        const fileField = document.getElementById('fileField');
+        const urlInput = document.getElementById('url');
+        const fileInput = document.getElementById('file');
+        
+        // Hide all fields first
+        urlField.style.display = 'none';
+        fileField.style.display = 'none';
+        
+        // Remove required attribute from all
+        urlInput.removeAttribute('required');
+        fileInput.removeAttribute('required');
+        
+        // Show and require the appropriate field
+        if (resourceType === 'link') {
+            urlField.style.display = 'block';
+            urlInput.setAttribute('required', 'required');
+        } else if (resourceType === 'pdf') {
+            fileField.style.display = 'block';
+            fileInput.setAttribute('required', 'required');
+        }
     }
 
 </script>

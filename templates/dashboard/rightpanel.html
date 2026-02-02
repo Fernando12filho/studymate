@@ -1,5 +1,5 @@
 <!-- RIGHT PANEL: AI Agent Chat -->
-<div class="chat-panel">
+<div class="chat-panel" id="chatPanel">
     <div class="chat-header">
         <div class="chat-title">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -7,12 +7,19 @@
             </svg>
             <span>AI Study Assistant</span>
         </div>
-        <button class="btn-icon" title="Clear Chat">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-        </button>
+        <div class="chat-header-actions">
+            <button class="btn-icon" onclick="toggleChat()" title="Minimize Chat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+            <button class="btn-icon" title="Clear Chat">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
     </div>
     
     <div class="chat-messages" id="chatMessages">
@@ -53,3 +60,54 @@
         </button>
     </div>
 </div>
+
+<!-- Floating Chat Button (visible when chat is minimized) -->
+<button class="floating-chat-btn" id="floatingChatBtn" onclick="toggleChat()" title="Open Chat" style="display: none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+</button>
+
+<script>
+    // Chat state persistence
+    const CHAT_STATE_KEY = 'studymate_chat_minimized';
+    
+    function toggleChat() {
+        const chatPanel = document.getElementById('chatPanel');
+        const floatingBtn = document.getElementById('floatingChatBtn');
+        
+        if (chatPanel.classList.contains('minimized')) {
+            // Open chat
+            chatPanel.classList.remove('minimized');
+            floatingBtn.style.display = 'none';
+            localStorage.setItem(CHAT_STATE_KEY, 'false');
+        } else {
+            // Minimize chat
+            chatPanel.classList.add('minimized');
+            floatingBtn.style.display = 'flex';
+            localStorage.setItem(CHAT_STATE_KEY, 'true');
+        }
+    }
+    
+    // Restore chat state on page load
+    function initializeChatState() {
+        const chatPanel = document.getElementById('chatPanel');
+        const floatingBtn = document.getElementById('floatingChatBtn');
+        const isMinimized = localStorage.getItem(CHAT_STATE_KEY) === 'true';
+        
+        if (isMinimized) {
+            chatPanel.classList.add('minimized');
+            floatingBtn.style.display = 'flex';
+        } else {
+            chatPanel.classList.remove('minimized');
+            floatingBtn.style.display = 'none';
+        }
+    }
+    
+    // Initialize state when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeChatState);
+    } else {
+        initializeChatState();
+    }
+</script>

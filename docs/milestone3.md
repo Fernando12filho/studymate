@@ -20,8 +20,8 @@ Enable users to add learning material to projects.
 - [ x ] Logout route
 - [ x ] Study if database is set correctly, table for all subjects, all together
 - [ x ] Create routes to add notes
-- [  ] Create routes to add resources
-- [  ] Prepare phase 4
+- [ x ] Create routes to add resources
+- [ x ] Prepare phase 4
 
 ### Done When
 - Projects contain multiple content items

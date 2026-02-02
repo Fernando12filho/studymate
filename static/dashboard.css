@@ -598,6 +598,16 @@ a.btn-secondary {
     display: flex;
     flex-direction: column;
     height: 100%;
+    transition: width 0.3s ease, margin-right 0.3s ease, opacity 0.3s ease;
+    overflow: hidden;
+}
+
+.chat-panel.minimized {
+    width: 0;
+    margin-right: 0;
+    opacity: 0;
+    pointer-events: none;
+    border-left: none;
 }
 
 .chat-header {
@@ -607,6 +617,11 @@ a.btn-secondary {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.chat-header-actions {
+    display: flex;
+    gap: 4px;
 }
 
 .chat-title {
@@ -776,6 +791,36 @@ a.btn-secondary {
 }
 
 .btn-send:active {
+    transform: scale(0.95);
+}
+
+/* Floating Chat Button */
+.floating-chat-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #007acc;
+    border: none;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.floating-chat-btn:hover {
+    background: #0098ff;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 122, 204, 0.4);
+}
+
+.floating-chat-btn:active {
     transform: scale(0.95);
 }
 

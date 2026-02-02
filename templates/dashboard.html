@@ -6,12 +6,14 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 
 <div class="vscode-layout">
-
+    
     {% if active_topic %}
         {% include 'dashboard/topic.html' %}
     {% else %}
         {% include 'dashboard/main.html' %} 
     {% endif %} 
+    {% include 'dashboard/rightpanel.html' %}
+    
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop" style="display: none;" onclick="closeCreateTopicModal()"></div>

@@ -1,7 +1,7 @@
 import os
 from flask import Flask, render_template
 from .config import Config, BASE_DIR
-from .extensions import db
+from .extensions import db, migrate
 from flask_login import LoginManager, login_required, current_user
 
 login_manager = LoginManager()
@@ -32,6 +32,8 @@ def create_app(config_class: type = Config):
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     
     db.init_app(app)
+    migrate.init_app(app, db)
+    
     @app.get("/health")
     def health():
         return "ok", 200

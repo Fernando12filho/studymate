@@ -71,6 +71,10 @@ class Resource(db.Model):
         onupdate=datetime.utcnow
     )
 
+    # AI-generated summary fields
+    summary: Mapped[str | None] = mapped_column(db.Text)
+    summary_generated_at: Mapped[datetime | None] = mapped_column()
+
     # Ownership
     user_id: Mapped[int] = mapped_column(
         ForeignKey("user_table.id"),
@@ -161,6 +165,33 @@ class Resource(db.Model):
                 return match.group(1)
         
         return None
+
+class ResourceChunk(db.Model):
+    __tablename__ = "resource_chunk"
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    
+    resource_id: Mapped[int] = mapped_column(
+        ForeignKey("resource.id"),
+        nullable=False,
+        index=True
+    )
+    
+    chunk_text: Mapped[str] = mapped_column(db.Text, nullable=False)
+    chunk_index: Mapped[int] = mapped_column(db.Integer, nullable=False)
+    
+    # For PDFs
+    page_number: Mapped[int | None] = mapped_column(db.Integer)
+    
+    # Vector embedding (stored as JSON array)
+    embedding: Mapped[str | None] = mapped_column(db.Text)
+    
+    # Metadata
+    token_count: Mapped[int | None] = mapped_column(db.Integer)
+    
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    
+    resource = relationship("Resource", backref="chunks")
 
 class Note(db.Model):
     __tablename__ = "note"

@@ -1,7 +1,8 @@
 import functools
 import re
+import os
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.models import User
@@ -55,6 +56,10 @@ def register():
 # Finish login and correct register route
 @bp.route("/login", methods=['GET', 'POST'])
 def login():
+     print(f"\n=== LOGIN ROUTE HIT === Method: {request.method}")
+     print(f"Current working directory: {os.getcwd()}")
+     print(f"DB URI: {current_app.config['SQLALCHEMY_DATABASE_URI']}")
+     
      errors = []
      if request.method == "POST":
         email = (request.form.get("email") or "").strip()
@@ -64,16 +69,24 @@ def login():
             errors.append("Email is required")
         if not password:
             errors.append("Password is required")
-        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+        if email and not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
             errors.append("Enter a valid email address")      
+        
         if not errors:
-            user = User.query.filter_by(email=email).first()
-        if not user or not check_password_hash(user.password, password):
-            errors.append("Invalid email or password")
-        else:
-            login_user(user)
-            errors=[]
-            return redirect(url_for("dashboard"))
+            try:
+                user = User.query.filter_by(email=email).first()
+                if not user or not check_password_hash(user.password, password):
+                    errors.append("Invalid email or password")
+                else:
+                    login_user(user)
+                    return redirect(url_for("dashboard"))
+            except Exception as e:
+                current_app.logger.error(f"Login error: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
+                errors.append("An error occurred. Please try again.")
+
+        
         return render_template("index.html", errors=errors)
      
      if request.method == "GET":

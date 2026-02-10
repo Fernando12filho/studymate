@@ -1,21 +1,20 @@
 <!-- TOPIC PAGE -->
 <div class="topic-page">
-    <!-- Back to Dashboard Link -->
-    <a href="{{ url_for('dashboard') }}" class="back-to-dashboard">
-        ← Back to Dashboard
-    </a>
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <a href="{{ url_for('dashboard') }}" class="back-link">
+            ← Back to Dashboard
+        </a>
+        <div class="toolbar-spacer"></div>
+        <a href="{{ url_for('note.create_note', topic_id=active_topic.id) }}" class="toolbar-btn primary">Add Note</a>
+        <a href="#" onclick="addResource(); return false;" class="toolbar-btn">Add Resource</a>
+        <a href="#" onclick="addSubtopic(); return false;" class="toolbar-btn">Add Subtopic</a>
+    </div>
 
     <!-- Topic Header -->
     <div class="topic-header">
         <h1>{{ active_topic.name }}</h1>
         <p>{{ active_topic.description }}</p>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="topic-actions">
-        <a href="{{ url_for('note.create_note', topic_id=active_topic.id) }}" method="GET" class="btn-action">Add Note</a>
-        <a href="#" onclick="addResource(); return false;" class="btn-action">Add Resource</a>
-        <a href="#" onclick="addSubtopic(); return false;" class="btn-action">Add Subtopic</a>
     </div>
 
     <!-- Topic Content -->

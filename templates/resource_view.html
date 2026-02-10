@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 <style>
     body {
         background: #1e1e1e;
@@ -16,77 +17,6 @@
         min-height: 100vh;
         background: #252526;
         color: #cccccc;
-    }
-
-    .toolbar {
-        background: #2d2d30;
-        padding: 8px 20px;
-        border-bottom: 1px solid #3e3e42;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    .toolbar-btn {
-        padding: 6px 12px;
-        background: #3c3c3c;
-        border: 1px solid #3e3e42;
-        border-radius: 4px;
-        color: #cccccc;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .toolbar-btn:hover {
-        background: #4a4a4a;
-        border-color: #5a5a5a;
-    }
-
-    .toolbar-btn.danger {
-        background: #3c1f1f;
-        border-color: #5a2d2d;
-        color: #f48771;
-    }
-
-    .toolbar-btn.danger:hover {
-        background: #5a2d2d;
-        border-color: #7a3d3d;
-    }
-
-    .toolbar-btn.primary {
-        background: #0e639c;
-        border-color: #1177bb;
-        color: #ffffff;
-    }
-
-    .toolbar-btn.primary:hover {
-        background: #1177bb;
-        border-color: #1b8ad7;
-    }
-
-    .back-link {
-        padding: 6px 12px;
-        background: #3c3c3c;
-        border: 1px solid #3e3e42;
-        border-radius: 4px;
-        color: #cccccc;
-        font-size: 13px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
-    }
-
-    .back-link:hover {
-        background: #4a4a4a;
-        border-color: #5a5a5a;
     }
 
     .resource-content-area {

@@ -1,254 +1,204 @@
 {% extends "base.html" %}
 
-{% block title %}Notes - StudyMate{% endblock %}
+{% block title %}{{ note.title if note else 'Untitled Note' }} - StudyMate{% endblock %}
 
 {% block content %}
-<style>
-    body {
-        background: #1e1e1e;
-        margin: 0;
-        padding: 0;
-        display: block;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
+<link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
 
-    .notes-container {
-        width: 100%;
-        height: 100vh;
-        background: #252526;
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-    }
-
-    .toolbar {
-        background: #2d2d30;
-        padding: 8px 20px;
-        border-bottom: 1px solid #3e3e42;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    .toolbar-btn {
-        padding: 6px 12px;
-        background: #3c3c3c;
-        border: 1px solid #3e3e42;
-        border-radius: 4px;
-        color: #cccccc;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .toolbar-btn:hover {
-        background: #4a4a4a;
-        border-color: #5a5a5a;
-    }
-
-    .toolbar-btn.primary {
-        background: #007acc;
-        color: white;
-        border-color: #007acc;
-    }
-
-    .toolbar-btn.primary:hover {
-        background: #0098ff;
-        border-color: #0098ff;
-    }
-
-    .back-link {
-        color: #007acc;
-        text-decoration: none;
-        font-size: 13px;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .back-link:hover {
-        text-decoration: underline;
-        color: #0098ff;
-    }
-
-    .toolbar-spacer {
-        flex: 1;
-    }
-
-    .notes-content {
-        flex: 1;
-        overflow-y: auto;
-        padding: 40px 80px;
-        max-width: 1200px;
-        width: 100%;
-        margin: 0 auto;
-    }
-
-    .notes-header {
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #3e3e42;
-    }
-
-    .notes-title {
-        font-size: 32px;
-        color: #e0e0e0;
-        font-weight: 600;
-        margin-bottom: 12px;
-        padding: 8px 0;
-        border: none;
-        width: 100%;
-        outline: none;
-        background: transparent;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-
-    .notes-title::placeholder {
-        color: #6a6a6a;
-    }
-
-    .notes-title:focus {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 4px;
-        padding: 8px 12px;
-    }
-
-    .notes-meta {
-        font-size: 12px;
-        color: #858585;
-        padding: 0 0;
-        display: flex;
-        gap: 12px;
-    }
-
-    .notes-editor {
-        min-height: calc(100vh - 300px);
-        font-size: 16px;
-        line-height: 1.7;
-        color: #d4d4d4;
-        padding: 12px 0;
-        border: none;
-        outline: none;
-        width: 100%;
-        background: transparent;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-        resize: none;
-    }
-
-    .notes-editor::placeholder {
-        color: #6a6a6a;
-    }
-
-    .notes-editor:focus {
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 4px;
-        padding: 12px;
-    }
-
-    /* Custom scrollbar for dark mode */
-    .notes-content::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    .notes-content::-webkit-scrollbar-track {
-        background: #1e1e1e;
-    }
-
-    .notes-content::-webkit-scrollbar-thumb {
-        background: #3e3e42;
-        border-radius: 6px;
-    }
-
-    .notes-content::-webkit-scrollbar-thumb:hover {
-        background: #4a4a4a;
-    }
-</style>
-
-<div class="notes-container">
-    <div class="toolbar">
-        <a href="{{ url_for('topic.view_topic', topic_id=topic_id) if topic_id else url_for('dashboard') }}" class="back-link">
-            ← Back to Topic
+<!-- Obsidian-style Notes Interface -->
+<div class="obsidian-notes-container">
+    <!-- Floating Action Bar -->
+    <div class="floating-action-bar">
+        <a href="{{ url_for('topic.view_topic', topic_id=topic_id) if topic_id else url_for('dashboard') }}" class="action-btn" title="Back to Topic">
+            <span class="icon">←</span>
         </a>
-        <div class="toolbar-spacer"></div>
-        <button class="toolbar-btn" onclick="formatText('bold')"><b>B</b></button>
-        <button class="toolbar-btn" onclick="formatText('italic')"><i>I</i></button>
-        <button class="toolbar-btn" onclick="formatText('underline')"><u>U</u></button>
-        <!-- Add note id but if note id is not defined send nothing -->
+        <div class="action-spacer"></div>
+        <button class="action-btn" id="viewModeEdit" onclick="setViewMode('edit')" title="Edit mode (Ctrl+E)">
+            <span class="icon">✏️</span>
+        </button>
+        <button class="action-btn" id="viewModeSplit" onclick="setViewMode('split')" title="Split view (Ctrl+Shift+E)">
+            <span class="icon">⟷</span>
+        </button>
+        <button class="action-btn" id="viewModePreview" onclick="setViewMode('preview')" title="Preview mode (Ctrl+Shift+P)">
+            <span class="icon">👁️</span>
+        </button>
+        <div class="action-divider"></div>
+        <span class="status-text" id="statusText">{{ note.title if note else 'Untitled Note' }}</span>
+        <span class="word-count" id="wordCount">0 words</span>
+        <div class="action-divider"></div>
         {% if note %}
-            <button class="toolbar-btn primary" onclick="updateNote()">Update</button>
-        {% else %}
-            <button class="toolbar-btn primary" onclick="saveNote()">Save</button>
-        {% endif %}
-        <!-- Button to delete note made in anchor tag -->
-         {% if note %}
-        <form action="{{ url_for('note.delete_note', note_id=note.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="toolbar-btn" onclick="return confirm('Are you sure you want to delete this note?')">Delete</button>
-        </form>
+            <button class="action-btn danger" onclick="deleteNote()" title="Delete note">
+                <span class="icon">🗑️</span>
+            </button>
         {% endif %}
     </div>
 
-    <div class="notes-content">
-        <div class="notes-header">
-            <input type="text" class="notes-title" placeholder="Untitled Note" value="{{ note.title if note else '' }}">
-            <div class="notes-meta">
-                <span id="lastSaved">Last saved: Never</span>
-                <span>•</span>
-                <span id="wordCount">0 words</span>
+    <!-- Main Editor Area -->
+    <div class="obsidian-editor-panes" id="editorPanes">
+        <!-- Edit Pane -->
+        <div class="editor-pane" id="editPane">
+            <div class="editor-wrapper">
+                <textarea class="obsidian-editor" id="noteEditor" placeholder="# Untitled Note
+
+Start writing your notes here...
+
+Supports full Markdown syntax:
+- **Bold** and *italic*
+- Lists and checkboxes
+- Code blocks
+- Links and more">{{ note.content if note else '' }}</textarea>
             </div>
         </div>
 
-        <textarea class="notes-editor" placeholder="Start typing your notes here...">{{ note.content if note else '' }}</textarea>
+        <!-- Preview Pane -->
+        <div class="preview-pane" id="previewPane">
+            <div class="preview-wrapper">
+                <div class="obsidian-preview" id="markdownPreview">
+                    <p class="preview-placeholder">Preview will appear here...</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    const editor = document.querySelector('.notes-editor');
-    const titleInput = document.querySelector('.notes-title');
+    const editor = document.getElementById('noteEditor');
     const wordCountSpan = document.getElementById('wordCount');
-    const lastSavedSpan = document.getElementById('lastSaved');
+    const statusText = document.getElementById('statusText');
+    const previewDiv = document.getElementById('markdownPreview');
+    const editorPanes = document.getElementById('editorPanes');
+    const editPane = document.getElementById('editPane');
+    const previewPane = document.getElementById('previewPane');
+    
+    let currentMode = 'split'; // edit, preview, split
+    let autoSaveTimer = null;
+    let hasUnsavedChanges = false;
 
-    // Auto-resize textarea
-    function autoResize() {
-        editor.style.height = 'auto';
-        editor.style.height = Math.max(600, editor.scrollHeight) + 'px';
+    // Extract title from content (first line if it starts with #)
+    function extractTitle() {
+        const content = editor.value.trim();
+        const firstLine = content.split('\n')[0];
+        if (firstLine.startsWith('#')) {
+            return firstLine.replace(/^#+\s*/, '').trim() || 'Untitled Note';
+        }
+        return content.split('\n')[0].substring(0, 50) || 'Untitled Note';
     }
 
-    editor.addEventListener('input', () => {
-        autoResize();
-        updateWordCount();
-    });
-
-    // Update word count
-    function updateWordCount() {
+    // Update word count and status
+    function updateMetadata() {
         const text = editor.value.trim();
         const words = text ? text.split(/\s+/).length : 0;
         wordCountSpan.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+        
+        const title = extractTitle();
+        statusText.textContent = title;
+        document.title = `${title} - StudyMate`;
     }
 
-    // Format text (basic placeholder - would need contentEditable for full formatting)
-    function formatText(format) {
-        // This is a simple placeholder
-        // For real formatting, you'd want to use a rich text editor library
-        console.log('Format:', format);
+    // View mode management
+    function setViewMode(mode) {
+        currentMode = mode;
+        
+        // Update button states
+        document.querySelectorAll('.action-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('viewMode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+        
+        // Update pane visibility
+        editorPanes.className = 'obsidian-editor-panes mode-' + mode;
+        
+        if (mode === 'preview' || mode === 'split') {
+            renderMarkdown();
+        }
     }
+
+    // Render markdown preview
+    function renderMarkdown() {
+        const markdown = editor.value;
+        
+        fetch('/note/preview', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: markdown }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.html) {
+                previewDiv.innerHTML = data.html;
+            } else {
+                previewDiv.innerHTML = '<p class="preview-placeholder">Preview not available</p>';
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            previewDiv.innerHTML = '<p class="preview-placeholder error">Error rendering preview</p>';
+        });
+    }
+
+    // Auto-save functionality
+    function scheduleAutoSave() {
+        hasUnsavedChanges = true;
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            {% if note %}
+            updateNote(true);
+            {% else %}
+            saveNote(true);
+            {% endif %}
+        }, 2000); // Auto-save after 2 seconds of inactivity
+    }
+
+    // Event listeners
+    editor.addEventListener('input', () => {
+        updateMetadata();
+        if (currentMode === 'split') {
+            renderMarkdown();
+        }
+        scheduleAutoSave();
+    });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+        // Save: Ctrl+S
         if ((e.metaKey || e.ctrlKey) && e.key === 's') {
             e.preventDefault();
-            saveNotes();
+            {% if note %}
+            updateNote(false);
+            {% else %}
+            saveNote(false);
+            {% endif %}
+        }
+        // Edit mode: Ctrl+E
+        if ((e.metaKey || e.ctrlKey) && !e.shiftKey && e.key === 'e') {
+            e.preventDefault();
+            setViewMode('edit');
+        }
+        // Split view: Ctrl+Shift+E
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'E') {
+            e.preventDefault();
+            setViewMode('split');
+        }
+        // Preview mode: Ctrl+Shift+P
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'P') {
+            e.preventDefault();
+            setViewMode('preview');
         }
     });
 
     // Initialize
-    autoResize();
-    updateWordCount();
+    updateMetadata();
+    setViewMode('split');
 
-    function saveNote() {
-        const title = titleInput.value.trim();
+    // Save new note
+    function saveNote(isAutoSave = false) {
+        const title = extractTitle();
         const content = editor.value.trim();
+        
+        if (!isAutoSave) {
+            statusText.textContent = 'Saving...';
+        }
+        
         fetch(`/note/{{ topic_id }}/note`, {
             method: 'POST',
             headers: {
@@ -259,22 +209,35 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Redirect to the view_note page with the new note
-                window.location.href = data.redirect_url;
+                if (!isAutoSave) {
+                    // Redirect to the edit page for the new note
+                    window.location.href = data.redirect_url;
+                } else {
+                    hasUnsavedChanges = false;
+                    statusText.textContent = title + ' (saved)';
+                    setTimeout(() => statusText.textContent = title, 2000);
+                }
             } else {
-                console.error('Error saving note');
+                statusText.textContent = title + ' (error saving)';
             }
         })
         .catch((error) => {
             console.error('Error:', error);
+            statusText.textContent = title + ' (error)';
         });
     }
 
     {% if note %}
-    function updateNote() {
-        const title = titleInput.value.trim();
+    // Update existing note
+    function updateNote(isAutoSave = false) {
+        const title = extractTitle();
         const content = editor.value.trim();
-            fetch(`/note/{{ note.id }}/update`, {
+        
+        if (!isAutoSave) {
+            statusText.textContent = 'Saving...';
+        }
+        
+        fetch(`/note/{{ note.id }}/update`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -284,17 +247,44 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const now = new Date();
-                lastSavedSpan.textContent = `Last saved: ${now.toLocaleTimeString()}`;
-                console.log('Note updated successfully');
+                hasUnsavedChanges = false;
+                if (!isAutoSave) {
+                    statusText.textContent = title + ' (saved)';
+                    setTimeout(() => statusText.textContent = title, 2000);
+                }
             } else {
-                console.error('Error updating note');
+                statusText.textContent = title + ' (error saving)';
             }
         })
         .catch((error) => {
             console.error('Error:', error);
+            statusText.textContent = title + ' (error)';
         });
     }
+    
+    // Delete note
+    function deleteNote() {
+        if (confirm('Are you sure you want to delete this note?')) {
+            fetch('/note/delete/{{ note.id }}', {
+                method: 'POST',
+            })
+            .then(() => {
+                window.location.href = '{{ url_for("topic.view_topic", topic_id=topic_id) if topic_id else url_for("dashboard") }}';
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Error deleting note');
+            });
+        }
+    }
     {% endif %}
+    
+    // Warn about unsaved changes
+    window.addEventListener('beforeunload', (e) => {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
 </script>
 {% endblock %}

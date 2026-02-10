@@ -3,8 +3,43 @@ from flask import Blueprint, flash, jsonify, redirect, render_template, request,
 from flask_login import current_user, login_required
 from .models import Topic, Note
 from .extensions import db
+import markdown
+import bleach
 
 bp = Blueprint('note', __name__, url_prefix='/note')
+
+# Allowed HTML tags for markdown rendering
+ALLOWED_TAGS = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'br', 'strong', 'em', 'u', 'code', 'pre',
+    'ul', 'ol', 'li', 'blockquote', 'a', 'img',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'hr', 'span', 'div'
+]
+
+ALLOWED_ATTRIBUTES = {
+    'a': ['href', 'title'],
+    'img': ['src', 'alt', 'title'],
+    'code': ['class'],
+    'span': ['class'],
+    'div': ['class']
+}
+
+def render_markdown(content):
+    """Convert markdown to safe HTML"""
+    # Convert markdown to HTML
+    html = markdown.markdown(
+        content,
+        extensions=['fenced_code', 'tables', 'nl2br']
+    )
+    # Sanitize HTML to prevent XSS
+    clean_html = bleach.clean(
+        html,
+        tags=ALLOWED_TAGS,
+        attributes=ALLOWED_ATTRIBUTES,
+        strip=True
+    )
+    return clean_html
 
 @bp.route("/<int:topic_id>/create_note", methods=['GET', 'POST'])
 @login_required
@@ -99,3 +134,16 @@ def delete_note(note_id):
 
     flash('Note deleted successfully!', 'success')
     return redirect(url_for('topic.view_topic', topic_id=note.topic_id))
+# Route to preview markdown
+@bp.route("/preview", methods=['POST'])
+@login_required
+def preview_markdown():
+    """Convert markdown content to HTML for preview"""
+    data = request.get_json()
+    content = data.get('content', '')
+    
+    if not content:
+        return jsonify({'html': '<p style="color: #858585;">No content to preview</p>'})
+    
+    html = render_markdown(content)
+    return jsonify({'html': html})

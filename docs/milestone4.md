@@ -1,5 +1,5 @@
-[ ] adicionar chat do lado direito 
-[ ] fechar e abrir chat
+[ x ] adicionar chat do lado direito 
+[ x ] fechar e abrir chat
 [ ] acrescentar contexto para a llm
 [ ] estudar melhor maneira de lidar com os dados 
 [ ] melhorar onde toma notas

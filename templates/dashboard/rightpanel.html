@@ -23,29 +23,35 @@
     </div>
     
     <div class="chat-messages" id="chatMessages">
-        <!-- TODO: Insert chat messages here -->
-        <!-- Example structure:
-        <div class="message user-message">
-            <div class="message-content">Hello!</div>
-        </div>
-        <div class="message ai-message">
-            <div class="message-content">Hi! How can I help you study today?</div>
-        </div>
-        -->
-        <div class="chat-welcome">
+        <div class="chat-welcome" id="chatWelcome">
             <div class="ai-avatar">🤖</div>
             <h3>Hello! I'm your AI Study Assistant</h3>
             <p>I can help you:</p>
             <ul>
+                <li>Answer questions about your notes and resources</li>
                 <li>Generate practice exercises</li>
-                <li>Answer questions about your notes</li>
-                <li>Suggest study strategies</li>
+                <li>Explain complex concepts</li>
+                <li>Provide study strategies</li>
             </ul>
-            <p class="chat-hint">Start by asking me anything!</p>
+            <p class="chat-hint">💡 Attach notes or resources to give me context!</p>
         </div>
     </div>
     
+    <!-- Attachments display -->
+    <div class="chat-attachments" id="chatAttachments" style="display: none;">
+        <div class="attachments-header">
+            <span class="attachments-label">📎 Attached:</span>
+            <button class="btn-text-small" onclick="clearAllAttachments()">Clear all</button>
+        </div>
+        <div class="attachments-list" id="attachmentsList"></div>
+    </div>
+    
     <div class="chat-input-container">
+        <button class="btn-attach" onclick="openAttachmentModal()" title="Attach notes or resources">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+        </button>
         <textarea 
             class="chat-input" 
             placeholder="Ask me anything about your studies..."
@@ -68,28 +74,67 @@
     </svg>
 </button>
 
+<!-- Attachment Modal -->
+<div class="modal-backdrop" id="attachmentModalBackdrop" style="display: none;" onclick="closeAttachmentModal()"></div>
+<div class="attachment-modal" id="attachmentModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Attach Context</h3>
+            <span class="close" onclick="closeAttachmentModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="attachment-tabs">
+                <button class="tab-btn active" data-tab="notes" onclick="switchAttachmentTab('notes')">Notes</button>
+                <button class="tab-btn" data-tab="resources" onclick="switchAttachmentTab('resources')">Resources</button>
+            </div>
+            
+            <div class="attachment-tab-content" id="notesTab">
+                <div class="search-box">
+                    <input type="text" placeholder="Search notes..." id="notesSearch" onkeyup="filterAttachments('notes')">
+                </div>
+                <div class="attachments-available" id="availableNotes">
+                    <div class="loading-state">Loading notes...</div>
+                </div>
+            </div>
+            
+            <div class="attachment-tab-content" id="resourcesTab" style="display: none;">
+                <div class="search-box">
+                    <input type="text" placeholder="Search resources..." id="resourcesSearch" onkeyup="filterAttachments('resources')">
+                </div>
+                <div class="attachments-available" id="availableResources">
+                    <div class="loading-state">Loading resources...</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="toolbar-btn" onclick="closeAttachmentModal()">Cancel</button>
+            <button class="toolbar-btn primary" onclick="confirmAttachments()">Attach Selected</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Chat state persistence
+    // ===== CHAT STATE & INITIALIZATION =====
     const CHAT_STATE_KEY = 'studymate_chat_minimized';
+    let currentConversationId = null;
+    let selectedAttachments = { notes: [], resources: [] };
+    let availableAttachments = { notes: [], resources: [] };
     
     function toggleChat() {
         const chatPanel = document.getElementById('chatPanel');
         const floatingBtn = document.getElementById('floatingChatBtn');
         
         if (chatPanel.classList.contains('minimized')) {
-            // Open chat
             chatPanel.classList.remove('minimized');
             floatingBtn.style.display = 'none';
             localStorage.setItem(CHAT_STATE_KEY, 'false');
         } else {
-            // Minimize chat
             chatPanel.classList.add('minimized');
             floatingBtn.style.display = 'flex';
             localStorage.setItem(CHAT_STATE_KEY, 'true');
         }
     }
     
-    // Restore chat state on page load
     function initializeChatState() {
         const chatPanel = document.getElementById('chatPanel');
         const floatingBtn = document.getElementById('floatingChatBtn');
@@ -102,9 +147,370 @@
             chatPanel.classList.remove('minimized');
             floatingBtn.style.display = 'none';
         }
+        
+        loadChatHistory();
     }
     
-    // Initialize state when DOM is ready
+    // ===== MESSAGE SENDING =====
+    async function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Disable input while sending
+        input.disabled = true;
+        document.getElementById('sendBtn').disabled = true;
+        
+        // Add user message to UI immediately
+        appendMessage('user', message, selectedAttachments);
+        
+        // Clear input
+        input.value = '';
+        input.style.height = 'auto';
+        
+        // Show typing indicator
+        showTypingIndicator();
+        
+        try {
+            const response = await fetch('/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: message,
+                    conversation_id: currentConversationId,
+                    note_ids: selectedAttachments.notes.map(n => n.id),
+                    resource_ids: selectedAttachments.resources.map(r => r.id),
+                    topic_id: {{ active_topic.id if active_topic else 'null' }}
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                currentConversationId = data.conversation_id;
+                removeTypingIndicator();
+                appendMessage('assistant', data.assistant_message.content);
+                
+                // Show token usage if available
+                if (data.usage) {
+                    console.log(`Tokens used: ${data.usage.total_tokens} (Cost: $${data.usage.estimated_cost})`);
+                }
+            } else {
+                throw new Error(data.error || 'Failed to send message');
+            }
+        } catch (error) {
+            removeTypingIndicator();
+            appendMessage('system', `Error: ${error.message}`, null, true);
+        } finally {
+            // Re-enable input
+            input.disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+            input.focus();
+            
+            // Clear attachments after sending
+            clearAllAttachments();
+        }
+    }
+    
+    // ===== MESSAGE RENDERING =====
+    function appendMessage(role, content, attachments = null, isError = false) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const welcome = document.getElementById('chatWelcome');
+        
+        // Hide welcome message on first message
+        if (welcome) {
+            welcome.style.display = 'none';
+        }
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}-message ${isError ? 'error-message' : ''}`;
+        
+        let html = '';
+        
+        // Add avatar for assistant messages
+        if (role === 'assistant') {
+            html += '<div class="message-avatar">🤖</div>';
+        }
+        
+        html += '<div class="message-bubble">';
+        
+        // Show attachments if present
+        if (attachments && (attachments.notes.length > 0 || attachments.resources.length > 0)) {
+            html += '<div class="message-attachments">';
+            attachments.notes.forEach(note => {
+                html += `<span class="attachment-chip">📝 ${note.title}</span>`;
+            });
+            attachments.resources.forEach(res => {
+                html += `<span class="attachment-chip">${res.type === 'pdf' ? '📄' : '🔗'} ${res.title}</span>`;
+            });
+            html += '</div>';
+        }
+        
+        // Message content (render markdown for assistant)
+        if (role === 'assistant') {
+            html += `<div class="message-content markdown-content">${renderMarkdownSimple(content)}</div>`;
+        } else {
+            html += `<div class="message-content">${escapeHtml(content)}</div>`;
+        }
+        
+        html += '</div>';
+        messageDiv.innerHTML = html;
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function showTypingIndicator() {
+        const messagesContainer = document.getElementById('chatMessages');
+        const typingDiv = document.createElement('div');
+        typingDiv.id = 'typingIndicator';
+        typingDiv.className = 'message assistant-message typing';
+        typingDiv.innerHTML = `
+            <div class="message-avatar">🤖</div>
+            <div class="message-bubble">
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        `;
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) indicator.remove();
+    }
+    
+    // ===== ATTACHMENT MANAGEMENT =====
+    async function openAttachmentModal() {
+        document.getElementById('attachmentModalBackdrop').style.display = 'block';
+        document.getElementById('attachmentModal').style.display = 'block';
+        
+        // Load available attachments if not loaded
+        if (availableAttachments.notes.length === 0 && availableAttachments.resources.length === 0) {
+            await loadAvailableAttachments();
+        }
+        
+        renderAvailableAttachments();
+    }
+    
+    function closeAttachmentModal() {
+        document.getElementById('attachmentModalBackdrop').style.display = 'none';
+        document.getElementById('attachmentModal').style.display = 'none';
+    }
+    
+    async function loadAvailableAttachments() {
+        try {
+            const topicId = {{ active_topic.id if active_topic else 'null' }};
+            const url = topicId ? `/chat/attachments?topic_id=${topicId}` : '/chat/attachments';
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            availableAttachments.notes = data.notes || [];
+            availableAttachments.resources = data.resources || [];
+        } catch (error) {
+            console.error('Error loading attachments:', error);
+        }
+    }
+    
+    function switchAttachmentTab(tab) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+        
+        // Update tab content
+        document.getElementById('notesTab').style.display = tab === 'notes' ? 'block' : 'none';
+        document.getElementById('resourcesTab').style.display = tab === 'resources' ? 'block' : 'none';
+    }
+    
+    function renderAvailableAttachments() {
+        // Render notes
+        const notesContainer = document.getElementById('availableNotes');
+        if (availableAttachments.notes.length === 0) {
+            notesContainer.innerHTML = '<div class="empty-state-small">No notes available</div>';
+        } else {
+            notesContainer.innerHTML = availableAttachments.notes.map(note => `
+                <div class="attachment-item ${isSelected('note', note.id) ? 'selected' : ''}" 
+                     onclick="toggleAttachment('note', ${note.id})">
+                    <div class="attachment-item-icon">📝</div>
+                    <div class="attachment-item-info">
+                        <div class="attachment-item-title">${escapeHtml(note.title)}</div>
+                        <div class="attachment-item-preview">${escapeHtml(note.preview)}</div>
+                    </div>
+                    <div class="attachment-item-check">
+                        ${isSelected('note', note.id) ? '✓' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render resources
+        const resourcesContainer = document.getElementById('availableResources');
+        if (availableAttachments.resources.length === 0) {
+            resourcesContainer.innerHTML = '<div class="empty-state-small">No resources available</div>';
+        } else {
+            resourcesContainer.innerHTML = availableAttachments.resources.map(res => `
+                <div class="attachment-item ${isSelected('resource', res.id) ? 'selected' : ''}" 
+                     onclick="toggleAttachment('resource', ${res.id})">
+                    <div class="attachment-item-icon">${res.type === 'pdf' ? '📄' : '🔗'}</div>
+                    <div class="attachment-item-info">
+                        <div class="attachment-item-title">${escapeHtml(res.title)}</div>
+                        <div class="attachment-item-type">${res.type.toUpperCase()}</div>
+                    </div>
+                    <div class="attachment-item-check">
+                        ${isSelected('resource', res.id) ? '✓' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+    
+    function toggleAttachment(type, id) {
+        const collection = type === 'note' ? availableAttachments.notes : availableAttachments.resources;
+        const item = collection.find(i => i.id === id);
+        
+        if (!item) return;
+        
+        const selectedArray = selectedAttachments[type === 'note' ? 'notes' : 'resources'];
+        const index = selectedArray.findIndex(i => i.id === id);
+        
+        if (index > -1) {
+            selectedArray.splice(index, 1);
+        } else {
+            selectedArray.push(item);
+        }
+        
+        renderAvailableAttachments();
+    }
+    
+    function isSelected(type, id) {
+        const key = type === 'note' ? 'notes' : 'resources';
+        return selectedAttachments[key].some(i => i.id === id);
+    }
+    
+    function confirmAttachments() {
+        updateAttachmentsDisplay();
+        closeAttachmentModal();
+    }
+    
+    function updateAttachmentsDisplay() {
+        const container = document.getElementById('chatAttachments');
+        const list = document.getElementById('attachmentsList');
+        
+        const totalAttachments = selectedAttachments.notes.length + selectedAttachments.resources.length;
+        
+        if (totalAttachments === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'block';
+        let html = '';
+        
+        selectedAttachments.notes.forEach(note => {
+            html += `
+                <div class="attachment-chip">
+                    📝 ${escapeHtml(note.title)}
+                    <button class="chip-remove" onclick="removeAttachment('note', ${note.id})">&times;</button>
+                </div>
+            `;
+        });
+        
+        selectedAttachments.resources.forEach(res => {
+            html += `
+                <div class="attachment-chip">
+                    ${res.type === 'pdf' ? '📄' : '🔗'} ${escapeHtml(res.title)}
+                    <button class="chip-remove" onclick="removeAttachment('resource', ${res.id})">&times;</button>
+                </div>
+            `;
+        });
+        
+        list.innerHTML = html;
+    }
+    
+    function removeAttachment(type, id) {
+        const key = type === 'note' ? 'notes' : 'resources';
+        selectedAttachments[key] = selectedAttachments[key].filter(i => i.id !== id);
+        updateAttachmentsDisplay();
+    }
+    
+    function clearAllAttachments() {
+        selectedAttachments = { notes: [], resources: [] };
+        updateAttachmentsDisplay();
+    }
+    
+    function filterAttachments(type) {
+        const searchInput = document.getElementById(type === 'notes' ? 'notesSearch' : 'resourcesSearch');
+        const query = searchInput.value.toLowerCase();
+        
+        const container = document.getElementById(type === 'notes' ? 'availableNotes' : 'availableResources');
+        const items = container.querySelectorAll('.attachment-item');
+        
+        items.forEach(item => {
+            const title = item.querySelector('.attachment-item-title').textContent.toLowerCase();
+            item.style.display = title.includes(query) ? 'flex' : 'none';
+        });
+    }
+    
+    // ===== CHAT HISTORY =====
+    async function loadChatHistory() {
+        if (!currentConversationId) return;
+        
+        try {
+            const response = await fetch(`/chat/history?conversation_id=${currentConversationId}`);
+            const data = await response.json();
+            
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    if (msg.role !== 'system') {
+                        appendMessage(msg.role, msg.content, {
+                            notes: msg.attached_notes || [],
+                            resources: msg.attached_resources || []
+                        });
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error loading chat history:', error);
+        }
+    }
+    
+    // ===== UTILITY FUNCTIONS =====
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function renderMarkdownSimple(text) {
+        // Simple markdown rendering (basic formatting)
+        return text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+    }
+    
+    // ===== EVENT LISTENERS =====
+    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    
+    document.getElementById('chatInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    // Auto-resize textarea
+    document.getElementById('chatInput').addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+    
+    // Initialize on page load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeChatState);
     } else {

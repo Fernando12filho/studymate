@@ -1209,6 +1209,491 @@ a.btn-secondary {
     letter-spacing: 0.3px;
 }
 
+/* ===================================
+   OBSIDIAN-STYLE NOTES INTERFACE
+   =================================== */
+
+/* Main container */
+.obsidian-notes-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    overflow: hidden;
+}
+
+/* Floating action bar (minimal, like Obsidian) */
+.floating-action-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: #252526;
+    border-bottom: 1px solid #2d2d30;
+    flex-shrink: 0;
+    height: 40px;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #858585;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: #2d2d30;
+    color: #cccccc;
+}
+
+.action-btn.active {
+    background: #37373d;
+    color: #ffffff;
+}
+
+.action-btn.danger:hover {
+    background: #3c1f1f;
+    color: #f48771;
+}
+
+.action-btn .icon {
+    display: block;
+    line-height: 1;
+}
+
+.action-spacer {
+    flex: 1;
+}
+
+.action-divider {
+    width: 1px;
+    height: 20px;
+    background: #3e3e42;
+    margin: 0 8px;
+}
+
+.status-text {
+    color: #cccccc;
+    font-size: 13px;
+    font-weight: 500;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.word-count {
+    color: #858585;
+    font-size: 12px;
+    padding: 0 8px;
+}
+
+/* Editor panes container */
+.obsidian-editor-panes {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Edit pane */
+.editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    overflow: hidden;
+    border-right: 1px solid #2d2d30;
+}
+
+.editor-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+
+/* Obsidian-style editor */
+.obsidian-editor {
+    flex: 1;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 60px;
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 16px;
+    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+    resize: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.obsidian-editor:focus {
+    outline: none;
+}
+
+.obsidian-editor::placeholder {
+    color: #4d4d4d;
+}
+
+/* Preview pane */
+.preview-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+    overflow: hidden;
+}
+
+.preview-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Obsidian-style preview */
+.obsidian-preview {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 60px;
+    color: #cccccc;
+    font-size: 16px;
+    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+.obsidian-preview h1 {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 24px 0;
+    line-height: 1.3;
+}
+
+.obsidian-preview h2 {
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 32px 0 16px 0;
+    line-height: 1.3;
+}
+
+.obsidian-preview h3 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 600;
+    margin: 24px 0 12px 0;
+    line-height: 1.3;
+}
+
+.obsidian-preview h4, .obsidian-preview h5, .obsidian-preview h6 {
+    color: #ffffff;
+    font-weight: 600;
+    margin: 20px 0 10px 0;
+    line-height: 1.4;
+}
+
+.obsidian-preview p {
+    margin: 0 0 16px 0;
+    color: #cccccc;
+}
+
+.obsidian-preview strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.obsidian-preview em {
+    font-style: italic;
+    color: #e0e0e0;
+}
+
+.obsidian-preview a {
+    color: #7f7fff;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.obsidian-preview a:hover {
+    border-bottom-color: #7f7fff;
+}
+
+.obsidian-preview ul, .obsidian-preview ol {
+    margin: 0 0 16px 0;
+    padding-left: 28px;
+}
+
+.obsidian-preview li {
+    margin: 4px 0;
+}
+
+.obsidian-preview code {
+    background: #2d2d30;
+    color: #ce9178;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 14px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+}
+
+.obsidian-preview pre {
+    background: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+}
+
+.obsidian-preview pre code {
+    background: transparent;
+    padding: 0;
+    color: #d4d4d4;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.obsidian-preview blockquote {
+    border-left: 3px solid #4d4d4d;
+    padding-left: 20px;
+    margin: 16px 0;
+    color: #999999;
+    font-style: italic;
+}
+
+.obsidian-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+}
+
+.obsidian-preview th, .obsidian-preview td {
+    border: 1px solid #3e3e42;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.obsidian-preview th {
+    background: #252526;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.obsidian-preview hr {
+    border: none;
+    border-top: 1px solid #3e3e42;
+    margin: 24px 0;
+}
+
+.obsidian-preview img {
+    max-width: 100%;
+    border-radius: 6px;
+    margin: 16px 0;
+}
+
+.preview-placeholder {
+    color: #4d4d4d;
+    font-style: italic;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.preview-placeholder.error {
+    color: #f48771;
+}
+
+/* View modes */
+.obsidian-editor-panes.mode-edit .preview-pane {
+    display: none;
+}
+
+.obsidian-editor-panes.mode-edit .editor-pane {
+    border-right: none;
+}
+
+.obsidian-editor-panes.mode-preview .editor-pane {
+    display: none;
+}
+
+.obsidian-editor-panes.mode-split .editor-pane,
+.obsidian-editor-panes.mode-split .preview-pane {
+    flex: 1;
+}
+
+/* Scrollbar styling */
+.obsidian-editor::-webkit-scrollbar,
+.preview-wrapper::-webkit-scrollbar {
+    width: 10px;
+}
+
+.obsidian-editor::-webkit-scrollbar-track,
+.preview-wrapper::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.obsidian-editor::-webkit-scrollbar-thumb,
+.preview-wrapper::-webkit-scrollbar-thumb {
+    background: #3e3e42;
+    border-radius: 5px;
+}
+
+.obsidian-editor::-webkit-scrollbar-thumb:hover,
+.preview-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #4d4d4d;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .obsidian-editor,
+    .obsidian-preview {
+        padding: 32px 40px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Force edit mode on mobile */
+    .obsidian-editor-panes.mode-split .preview-pane {
+        display: none;
+    }
+    
+    .obsidian-editor-panes.mode-split .editor-pane {
+        border-right: none;
+    }
+    
+    .obsidian-editor,
+    .obsidian-preview {
+        padding: 24px 20px;
+    }
+    
+    .status-text {
+        max-width: 150px;
+    }
+}
+
+/* Legacy notes styles (keeping for backwards compatibility) */
+.notes-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1e1e1e;
+}
+
+.notes-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.notes-header {
+    margin-bottom: 24px;
+}
+
+.notes-title {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #cccccc;
+    font-size: 32px;
+    font-weight: 600;
+    padding: 8px 0;
+    margin-bottom: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.notes-title:focus {
+    outline: none;
+    color: #ffffff;
+}
+
+.notes-meta {
+    display: flex;
+    gap: 12px;
+    color: #858585;
+    font-size: 13px;
+}
+
+.notes-editor {
+    width: 100%;
+    min-height: 500px;
+    background: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+    color: #cccccc;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 20px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', Consolas, monospace;
+    resize: vertical;
+}
+
+.notes-editor:focus {
+    outline: none;
+    border-color: #007acc;
+    box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+}
+
+.notes-editor.hidden {
+    display: none;
+}
+
+.notes-preview {
+    display: none;
+    width: 100%;
+    min-height: 500px;
+    background: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+    color: #cccccc;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.notes-preview.active {
+    display: block;
+}
+
+.notes-preview h1, .notes-preview h2, .notes-preview h3 {
+    color: #4ec9b0;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+
+.notes-preview code {
+    background: #1e1e1e;
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #ce9178;
+}
+
+.notes-preview pre {
+    background: #1e1e1e;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
 .ai-badge {
     background: rgba(78, 201, 176, 0.15);
     color: #4ec9b0;
@@ -1416,6 +1901,93 @@ a.btn-secondary {
     .topic-header h1 {
         font-size: 24px;
     }
+}
+
+/* ===================================
+   TOOLBAR COMPONENTS
+   =================================== */
+
+/* Main toolbar container */
+.toolbar {
+    background: #2d2d30;
+    padding: 8px 20px;
+    border-bottom: 1px solid #3e3e42;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Standard toolbar button */
+.toolbar-btn {
+    padding: 6px 12px;
+    background: #3c3c3c;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    color: #cccccc;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.toolbar-btn:hover {
+    background: #4a4a4a;
+    border-color: #5a5a5a;
+}
+
+/* Primary action button (blue accent) */
+.toolbar-btn.primary {
+    background: #0e639c;
+    border-color: #1177bb;
+    color: #ffffff;
+}
+
+.toolbar-btn.primary:hover {
+    background: #1177bb;
+    border-color: #1b8ad7;
+}
+
+/* Danger/destructive action button (red accent) */
+.toolbar-btn.danger {
+    background: #3c1f1f;
+    border-color: #5a2d2d;
+    color: #f48771;
+}
+
+.toolbar-btn.danger:hover {
+    background: #5a2d2d;
+    border-color: #7a3d3d;
+}
+
+/* Spacer to push items to the right */
+.toolbar-spacer {
+    flex: 1;
+    margin-left: auto;
+}
+
+/* Back navigation link */
+.back-link {
+    padding: 6px 12px;
+    background: #3c3c3c;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    color: #cccccc;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.back-link:hover {
+    background: #4a4a4a;
+    border-color: #5a5a5a;
 }
 
 /* ===================================

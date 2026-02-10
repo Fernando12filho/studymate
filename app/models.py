@@ -160,3 +160,111 @@ class Flashcard(db.Model):
     topic = relationship("Topic", backref="flashcards")
 
 
+# ===== CHAT MODELS =====
+
+# Association tables for many-to-many relationships
+message_notes = db.Table('message_notes',
+    db.Column('message_id', db.Integer, db.ForeignKey('chat_message.id'), primary_key=True),
+    db.Column('note_id', db.Integer, db.ForeignKey('note.id'), primary_key=True)
+)
+
+message_resources = db.Table('message_resources',
+    db.Column('message_id', db.Integer, db.ForeignKey('chat_message.id'), primary_key=True),
+    db.Column('resource_id', db.Integer, db.ForeignKey('resource.id'), primary_key=True)
+)
+
+class Conversation(db.Model):
+    __tablename__ = "conversation"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    
+    title: Mapped[str | None] = mapped_column(db.String(200))
+    # Auto-generated from first message or manually set
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
+
+    # Ownership
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user_table.id"),
+        nullable=False,
+        index=True
+    )
+
+    # Optional: Link conversation to a specific topic
+    topic_id: Mapped[int | None] = mapped_column(
+        ForeignKey("topic.id"),
+        nullable=True,
+        index=True
+    )
+
+    user = relationship("User")
+    topic = relationship("Topic", backref="conversations")
+    messages = relationship("ChatMessage", back_populates="conversation", cascade="all, delete-orphan")
+
+    def __repr__(self) -> str:
+        return f"<Conversation {self.id} {self.title or 'Untitled'}>"
+
+
+class ChatMessage(db.Model):
+    __tablename__ = "chat_message"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    role: Mapped[str] = mapped_column(db.String(20), nullable=False)
+    # "user", "assistant", or "system"
+
+    content: Mapped[str] = mapped_column(db.Text, nullable=False)
+
+    # Token tracking for cost management
+    input_tokens: Mapped[int | None] = mapped_column(db.Integer)
+    output_tokens: Mapped[int | None] = mapped_column(db.Integer)
+    total_tokens: Mapped[int | None] = mapped_column(db.Integer)
+
+    # Model used for this message (assistant only)
+    model_used: Mapped[str | None] = mapped_column(db.String(50))
+
+    created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
+
+    # Foreign keys
+    conversation_id: Mapped[int] = mapped_column(
+        ForeignKey("conversation.id"),
+        nullable=False,
+        index=True
+    )
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("user_table.id"),
+        nullable=False,
+        index=True
+    )
+
+    # Relationships
+    conversation = relationship("Conversation", back_populates="messages")
+    user = relationship("User")
+    
+    # Many-to-many relationships for attachments
+    attached_notes = relationship("Note", secondary=message_notes, backref="chat_messages")
+    attached_resources = relationship("Resource", secondary=message_resources, backref="chat_messages")
+
+    def __repr__(self) -> str:
+        return f"<ChatMessage {self.id} {self.role}: {self.content[:30]}...>"
+    
+    def to_dict(self):
+        """Convert message to dictionary for JSON serialization"""
+        return {
+            'id': self.id,
+            'role': self.role,
+            'content': self.content,
+            'created_at': self.created_at.isoformat(),
+            'attached_notes': [{'id': n.id, 'title': n.title} for n in self.attached_notes],
+            'attached_resources': [{'id': r.id, 'title': r.title} for r in self.attached_resources],
+            'tokens': {
+                'input': self.input_tokens,
+                'output': self.output_tokens,
+                'total': self.total_tokens
+            } if self.total_tokens else None
+        }

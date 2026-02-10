@@ -61,7 +61,7 @@ def create_resource(topic_id):
     
     # Handle POST request
     title = request.form.get('title')
-    resource_type = request.form.get('resource_type')  # 'link' or 'pdf'
+    resource_type = request.form.get('resource_type')  # 'link', 'pdf', 'video', 'audio', or 'image'
     url = request.form.get('url')
     file = request.files.get('file')
     
@@ -70,7 +70,7 @@ def create_resource(topic_id):
         flash('Resource title is required', 'error')
         return redirect(url_for('resource.create_resource', topic_id=topic_id))
     
-    if not resource_type or resource_type not in ['link', 'pdf']:
+    if not resource_type or resource_type not in ['link', 'pdf', 'video', 'audio', 'image']:
         flash('Invalid resource type', 'error')
         return redirect(url_for('resource.create_resource', topic_id=topic_id))
     
@@ -81,10 +81,10 @@ def create_resource(topic_id):
         topic_id=topic.id
     )
     
-    # Handle URL resource
-    if resource_type == 'link':
+    # Handle URL-based resources (link, video, audio, image)
+    if resource_type in ['link', 'video', 'audio', 'image']:
         if not url:
-            flash('URL is required for link resources', 'error')
+            flash(f'URL is required for {resource_type} resources', 'error')
             return redirect(url_for('resource.create_resource', topic_id=topic_id))
         new_resource.url = url
     
@@ -156,8 +156,8 @@ def update_resource(resource_id):
     
     resource.title = title
     
-    # Update URL if it's a link resource
-    if resource.is_link():
+    # Update URL if it's a URL-based resource (link, video, audio, image)
+    if resource.resource_type in ['link', 'video', 'audio', 'image']:
         url = request.form.get('url')
         if url:
             resource.url = url
@@ -269,6 +269,40 @@ def download_resource(resource_id):
         filename,
         as_attachment=True,
         download_name=resource.original_filename or filename
+    )
+
+
+@bp.route('/<int:resource_id>/serve')
+@login_required
+def serve_resource(resource_id):
+    """Serve a PDF resource inline for preview"""
+    resource = Resource.query.filter_by(id=resource_id, user_id=current_user.id).first()
+    
+    if not resource:
+        flash('Resource not found', 'error')
+        return redirect(url_for('dashboard'))
+    
+    if not resource.is_pdf():
+        flash('Only PDF resources can be served inline', 'error')
+        return redirect(url_for('resource.view_resource', resource_id=resource_id))
+    
+    if not resource.file_path:
+        flash('File not found', 'error')
+        return redirect(url_for('resource.view_resource', resource_id=resource_id))
+    
+    # Get the directory and filename
+    file_directory = os.path.join(
+        current_app.config['UPLOAD_FOLDER'],
+        os.path.dirname(resource.file_path)
+    )
+    filename = os.path.basename(resource.file_path)
+    
+    # Serve inline for browser preview
+    return send_from_directory(
+        file_directory,
+        filename,
+        as_attachment=False,
+        mimetype='application/pdf'
     )
 
 

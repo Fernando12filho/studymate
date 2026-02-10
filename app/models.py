@@ -52,10 +52,10 @@ class Resource(db.Model):
     resource_type: Mapped[str] = mapped_column(
         db.String(50),
         nullable=False
-        # "pdf" or "link"
+        # "pdf", "link", "video", "audio", or "image"
     )
 
-    # For links
+    # For links, videos, audio, and images
     url: Mapped[str | None] = mapped_column(db.Text)
     
     # For PDF files
@@ -92,8 +92,75 @@ class Resource(db.Model):
         return self.resource_type == "pdf" and self.file_path is not None
     
     def is_link(self) -> bool:
-        """Check if resource is a URL link"""
+        """Check if resource is a generic URL link"""
         return self.resource_type == "link" and self.url is not None
+    
+    def is_video(self) -> bool:
+        """Check if resource is a video"""
+        return self.resource_type == "video" and self.url is not None
+    
+    def is_audio(self) -> bool:
+        """Check if resource is audio"""
+        return self.resource_type == "audio" and self.url is not None
+    
+    def is_image(self) -> bool:
+        """Check if resource is an image"""
+        return self.resource_type == "image" and self.url is not None
+    
+    def get_embed_type(self) -> str | None:
+        """
+        Detect the embed type for video resources.
+        Returns: 'youtube', 'vimeo', 'direct', or None
+        """
+        if not self.is_video() or not self.url:
+            return None
+        
+        url_lower = self.url.lower()
+        
+        # YouTube detection
+        if 'youtube.com' in url_lower or 'youtu.be' in url_lower:
+            return 'youtube'
+        
+        # Vimeo detection
+        if 'vimeo.com' in url_lower:
+            return 'vimeo'
+        
+        # Direct video file detection
+        if any(url_lower.endswith(ext) for ext in ['.mp4', '.webm', '.ogg', '.mov']):
+            return 'direct'
+        
+        return None
+    
+    def get_video_id(self) -> str | None:
+        """
+        Extract video ID from YouTube or Vimeo URLs.
+        Returns the video ID string or None.
+        """
+        if not self.url:
+            return None
+        
+        embed_type = self.get_embed_type()
+        
+        if embed_type == 'youtube':
+            # Handle various YouTube URL formats
+            import re
+            patterns = [
+                r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})',
+                r'youtube\.com\/watch\?.*&v=([a-zA-Z0-9_-]{11})'
+            ]
+            for pattern in patterns:
+                match = re.search(pattern, self.url)
+                if match:
+                    return match.group(1)
+        
+        elif embed_type == 'vimeo':
+            # Extract Vimeo video ID (numeric)
+            import re
+            match = re.search(r'vimeo\.com\/(\d+)', self.url)
+            if match:
+                return match.group(1)
+        
+        return None
 
 class Note(db.Model):
     __tablename__ = "note"

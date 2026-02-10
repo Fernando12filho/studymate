@@ -33,10 +33,16 @@
                                 <div class="resource-thumbnail {{ resource.resource_type|lower }}">
                                     {% if resource.is_pdf() %}
                                         📄
+                                    {% elif resource.is_video() %}
+                                        🎥
+                                    {% elif resource.is_audio() %}
+                                        🎵
+                                    {% elif resource.is_image() %}
+                                        🖼️
                                     {% elif resource.is_link() %}
                                         🔗
                                     {% else %}
-                                        �
+                                        📎
                                     {% endif %}
                                 </div>
                                 <div class="resource-info">
@@ -44,6 +50,12 @@
                                     <div class="resource-type">
                                         {% if resource.is_pdf() %}
                                             PDF
+                                        {% elif resource.is_video() %}
+                                            Video
+                                        {% elif resource.is_audio() %}
+                                            Audio
+                                        {% elif resource.is_image() %}
+                                            Image
                                         {% elif resource.is_link() %}
                                             Link
                                         {% else %}
@@ -159,14 +171,18 @@
             <label for="resource_type">Resource Type:</label>
             <select id="resource_type" name="resource_type" required onchange="toggleResourceFields()">
                 <option value="">-- Select Type --</option>
-                <option value="link">Link/URL</option>
                 <option value="pdf">PDF Document</option>
+                <option value="video">Video</option>
+                <option value="audio">Audio</option>
+                <option value="image">Image</option>
+                <option value="link">Generic Link</option>
             </select>
             
-            <!-- URL field (shown when type is 'link') -->
+            <!-- URL field (shown for video, audio, image, and link types) -->
             <div id="urlField" style="display: none;">
                 <label for="url">URL:</label>
                 <input type="url" id="url" name="url" placeholder="https://example.com">
+                <small id="urlHint" style="display: block; color: #858585; margin-top: 4px;">Enter the URL for this resource</small>
             </div>
             
             <!-- File upload field (shown when type is 'pdf') -->
@@ -215,6 +231,7 @@
         const fileField = document.getElementById('fileField');
         const urlInput = document.getElementById('url');
         const fileInput = document.getElementById('file');
+        const urlHint = document.getElementById('urlHint');
         
         // Hide all fields first
         urlField.style.display = 'none';
@@ -225,9 +242,22 @@
         fileInput.removeAttribute('required');
         
         // Show and require the appropriate field
-        if (resourceType === 'link') {
+        if (resourceType === 'video') {
             urlField.style.display = 'block';
             urlInput.setAttribute('required', 'required');
+            urlHint.textContent = 'Enter YouTube, Vimeo, or direct video URL (e.g., .mp4)';
+        } else if (resourceType === 'audio') {
+            urlField.style.display = 'block';
+            urlInput.setAttribute('required', 'required');
+            urlHint.textContent = 'Enter audio file URL (e.g., .mp3, .wav, .ogg)';
+        } else if (resourceType === 'image') {
+            urlField.style.display = 'block';
+            urlInput.setAttribute('required', 'required');
+            urlHint.textContent = 'Enter image URL (e.g., .jpg, .png, .gif)';
+        } else if (resourceType === 'link') {
+            urlField.style.display = 'block';
+            urlInput.setAttribute('required', 'required');
+            urlHint.textContent = 'Enter any web URL';
         } else if (resourceType === 'pdf') {
             fileField.style.display = 'block';
             fileInput.setAttribute('required', 'required');

@@ -53,6 +53,24 @@
         border: 1px solid rgba(56, 142, 60, 0.3);
     }
 
+    .resource-type-badge.video {
+        background: rgba(63, 81, 181, 0.15);
+        color: #82b1ff;
+        border: 1px solid rgba(63, 81, 181, 0.3);
+    }
+
+    .resource-type-badge.audio {
+        background: rgba(156, 39, 176, 0.15);
+        color: #ce93d8;
+        border: 1px solid rgba(156, 39, 176, 0.3);
+    }
+
+    .resource-type-badge.image {
+        background: rgba(255, 152, 0, 0.15);
+        color: #ffb74d;
+        border: 1px solid rgba(255, 152, 0, 0.3);
+    }
+
     .resource-header h1 {
         font-size: 24px;
         margin: 0 0 12px 0;
@@ -161,26 +179,92 @@
         border-color: #1b8ad7;
     }
 
-    .pdf-preview {
+    .media-preview-container {
         background: #2d2d30;
         border: 1px solid #3e3e42;
         border-radius: 6px;
-        padding: 32px;
-        text-align: center;
+        padding: 20px;
         margin-top: 20px;
     }
 
-    .pdf-preview h3 {
-        margin: 0 0 12px 0;
+    .media-preview-container h3 {
+        margin: 0 0 16px 0;
         color: #ffffff;
         font-size: 16px;
         font-weight: 400;
     }
 
+    .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .preview-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    .preview-action-btn {
+        padding: 8px 16px;
+        background: #0e639c;
+        border: 1px solid #1177bb;
+        border-radius: 4px;
+        color: #ffffff;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+
+    .preview-action-btn:hover {
+        background: #1177bb;
+        border-color: #1b8ad7;
+    }
+
+    .preview-frame {
+        width: 100%;
+        background: #1e1e1e;
+        border: 1px solid #3e3e42;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .pdf-viewer {
+        width: 100%;
+        height: 800px;
+        border: none;
+    }
+
+    .video-player {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border: none;
+    }
+
+    .audio-player {
+        width: 100%;
+        margin: 20px 0;
+    }
+
+    .image-viewer {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+    }
+
     .preview-note {
         color: #858585;
         font-size: 13px;
-        margin: 0;
+        margin: 12px 0 0 0;
+        text-align: center;
     }
 
     .action-bar {
@@ -250,6 +334,12 @@
             <div class="resource-type-badge {{ resource.resource_type }}">
                 {% if resource.is_pdf() %}
                     📄 PDF DOCUMENT
+                {% elif resource.is_video() %}
+                    🎥 VIDEO
+                {% elif resource.is_audio() %}
+                    🎵 AUDIO
+                {% elif resource.is_image() %}
+                    🖼️ IMAGE
                 {% elif resource.is_link() %}
                     🔗 LINK
                 {% endif %}
@@ -264,8 +354,91 @@
         </div>
 
         <!-- Resource Content -->
-        {% if resource.is_link() %}
-            <!-- Link Resource -->
+        {% if resource.is_video() %}
+            <!-- Video Resource -->
+            <div class="resource-info-card">
+                <h3>🎥 Video URL</h3>
+                <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer" class="resource-url">
+                    {{ resource.url }}
+                    <span class="external-icon">↗</span>
+                </a>
+            </div>
+
+            <!-- Video Preview -->
+            <div class="media-preview-container">
+                <h3>🎬 Video Preview</h3>
+                <div class="preview-frame">
+                    {% set embed_type = resource.get_embed_type() %}
+                    {% set video_id = resource.get_video_id() %}
+                    
+                    {% if embed_type == 'youtube' and video_id %}
+                        <iframe class="video-player" 
+                                src="https://www.youtube.com/embed/{{ video_id }}" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    {% elif embed_type == 'vimeo' and video_id %}
+                        <iframe class="video-player" 
+                                src="https://player.vimeo.com/video/{{ video_id }}" 
+                                allow="autoplay; fullscreen; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    {% elif embed_type == 'direct' %}
+                        <video class="video-player" controls>
+                            <source src="{{ resource.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% else %}
+                        <p class="preview-note">Video preview not available for this URL format.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        {% elif resource.is_audio() %}
+            <!-- Audio Resource -->
+            <div class="resource-info-card">
+                <h3>🎵 Audio URL</h3>
+                <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer" class="resource-url">
+                    {{ resource.url }}
+                    <span class="external-icon">↗</span>
+                </a>
+            </div>
+
+            <!-- Audio Preview -->
+            <div class="media-preview-container">
+                <h3>🎧 Audio Player</h3>
+                <div class="preview-frame">
+                    <audio class="audio-player" controls>
+                        <source src="{{ resource.url }}" type="audio/mpeg">
+                        <source src="{{ resource.url }}" type="audio/wav">
+                        <source src="{{ resource.url }}" type="audio/ogg">
+                        Your browser does not support the audio tag.
+                    </audio>
+                </div>
+            </div>
+
+        {% elif resource.is_image() %}
+            <!-- Image Resource -->
+            <div class="resource-info-card">
+                <h3>🖼️ Image URL</h3>
+                <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer" class="resource-url">
+                    {{ resource.url }}
+                    <span class="external-icon">↗</span>
+                </a>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="media-preview-container">
+                <h3>🖼️ Image Preview</h3>
+                <div class="preview-frame">
+                    <img src="{{ resource.url }}" alt="{{ resource.title }}" class="image-viewer" 
+                         onerror="this.style.display='none'; this.nextSibling.style.display='block';">
+                    <p class="preview-note" style="display:none;">Unable to load image from this URL.</p>
+                </div>
+            </div>
+
+        {% elif resource.is_link() %}
+            <!-- Generic Link Resource -->
             <div class="resource-info-card">
                 <h3>🔗 Resource URL</h3>
                 <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer" class="resource-url">
@@ -309,17 +482,30 @@
                     </p>
                 </div>
             </div>
-            
-            <div class="resource-actions">
-                <a href="{{ url_for('resource.download_resource', resource_id=resource.id) }}" class="btn-action">
-                    📥 Download PDF
-                </a>
-            </div>
 
             <!-- PDF Preview -->
-            <div class="pdf-preview">
-                <h3>📖 Document Preview</h3>
-                <p class="preview-note">Click "Download PDF" to view the full document.</p>
+            <div class="media-preview-container">
+                <div class="preview-header">
+                    <h3>📖 Document Preview</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ url_for('resource.serve_resource', resource_id=resource.id) }}" target="_blank" class="preview-action-btn">
+                            🔍 Open Full View
+                        </a>
+                        <a href="{{ url_for('resource.download_resource', resource_id=resource.id) }}" class="preview-action-btn">
+                            📥 Download PDF
+                        </a>
+                    </div>
+                </div>
+                <div class="preview-frame">
+                    <iframe class="pdf-viewer" 
+                            src="{{ url_for('resource.serve_resource', resource_id=resource.id) }}" 
+                            type="application/pdf">
+                        <p class="preview-note">Your browser does not support PDF preview. 
+                           <a href="{{ url_for('resource.download_resource', resource_id=resource.id) }}" style="color: #4fc3f7;">Download the PDF</a> instead.
+                        </p>
+                    </iframe>
+                </div>
+                <p class="preview-note">Having trouble viewing? Try downloading the PDF or opening it in a new tab.</p>
             </div>
         {% endif %}
     </div>

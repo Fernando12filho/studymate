@@ -1,10 +1,12 @@
 import os
+import json
 from datetime import datetime
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for, current_app, send_from_directory
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
-from .models import Topic, Resource
+from .models import Topic, Resource, ResourceChunk
 from .extensions import db
+from . import ai_utils
 
 bp = Blueprint('resource', __name__, url_prefix='/resource')
 
@@ -90,6 +92,8 @@ def create_resource(topic_id):
     
     # Handle PDF file upload
     elif resource_type == 'pdf':
+        print(f"\n=== PDF UPLOAD START ===")
+        print(f"Received file: {file.filename if file else 'No file'}")
         if not file or file.filename == '':
             flash('PDF file is required', 'error')
             return redirect(url_for('resource.create_resource', topic_id=topic_id))
@@ -111,8 +115,57 @@ def create_resource(topic_id):
         new_resource.original_filename = original_filename
     
     try:
+        print(f"Saving resource to database: {new_resource.title} (Type: {new_resource.resource_type})")
         db.session.add(new_resource)
         db.session.commit()
+        
+        # Process PDF for RAG if it's a PDF upload
+        if resource_type == 'pdf' and file_path:
+            try:
+                # Construct full file path
+                full_file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], file_path)
+                
+                # Extract text from PDF
+                text_by_page = ai_utils.extract_pdf_text(full_file_path)
+                
+                if not text_by_page:
+                    flash('PDF uploaded but contains no extractable text (may be scanned/image-based)', 'warning')
+                else:
+                    # Chunk the extracted text
+                    chunks = ai_utils.chunk_text(text_by_page)
+                    
+                    # Generate embeddings and store chunks
+                    for chunk_data in chunks:
+                        try:
+                            # Generate embedding for this chunk
+                            embedding = ai_utils.generate_embedding(chunk_data['chunk_text'])
+                            
+                            # Create ResourceChunk record
+                            chunk = ResourceChunk(
+                                resource_id=new_resource.id,
+                                chunk_text=chunk_data['chunk_text'],
+                                chunk_index=chunk_data['chunk_index'],
+                                page_number=chunk_data['page_number'],
+                                embedding=json.dumps(embedding),
+                                token_count=chunk_data['token_count']
+                            )
+                            db.session.add(chunk)
+                        except Exception as embed_error:
+                            # If embedding generation fails, rollback chunks and continue
+                            db.session.rollback()
+                            flash(f'PDF uploaded but embedding generation failed: {str(embed_error)}', 'error')
+                            return redirect(url_for('topic.view_topic', topic_id=topic_id))
+                    
+                    # Commit all chunks at once
+                    db.session.commit()
+                    flash(f'Resource created successfully! Processed {len(chunks)} chunks for RAG.', 'success')
+                    return redirect(url_for('topic.view_topic', topic_id=topic_id))
+                    
+            except Exception as pdf_error:
+                # PDF processing failed, but resource was saved
+                flash(f'PDF uploaded but text extraction failed: {str(pdf_error)}', 'warning')
+                return redirect(url_for('topic.view_topic', topic_id=topic_id))
+        
         flash('Resource created successfully!', 'success')
         return redirect(url_for('topic.view_topic', topic_id=topic_id))
     except Exception as e:

@@ -21,6 +21,18 @@ class Config:
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024
     ALLOWED_EXTENSIONS = {'pdf'}
 
+    # ============================================================================
+    # LLM PROVIDER CONFIGURATION
+    # ============================================================================
+    # Choose provider: 'ollama' (local, privacy-first) or 'openai' (cloud)
+    LLM_PROVIDER = os.environ.get("LLM_PROVIDER", "ollama")
+    
+    # Ollama Configuration (local inference)
+    OLLAMA_CHAT_MODEL = os.environ.get("OLLAMA_CHAT_MODEL", "mistral:7b")
+    OLLAMA_EMBEDDING_MODEL = os.environ.get("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
+    OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+    
+    # OpenAI Configuration (cloud inference, fallback)
     OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
     OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
     OPENAI_MAX_TOKENS = int(os.environ.get("OPENAI_MAX_TOKENS", "4000"))

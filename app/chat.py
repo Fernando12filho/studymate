@@ -1,28 +1,17 @@
 """
-Chat routes for AI-powered study assistant with OpenAI integration
+Chat routes for AI-powered study assistant with flexible LLM provider support
 """
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from openai import OpenAI
 from .models import Conversation, ChatMessage, Note, Resource
 from .extensions import db
 from .ai_utils import (
-    count_tokens, 
-    estimate_cost, 
-    truncate_context,
+    get_llm_provider,
     build_context_from_notes,
-    build_context_from_resources
+    build_rag_context
 )
 
 bp = Blueprint('chat', __name__, url_prefix='/chat')
-
-
-def get_openai_client():
-    """Get configured OpenAI client"""
-    api_key = current_app.config.get('OPENAI_API_KEY')
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY not configured")
-    return OpenAI(api_key=api_key)
 
 
 def get_system_prompt():
@@ -67,8 +56,8 @@ def get_or_create_conversation(conversation_id=None, topic_id=None):
     return conversation
 
 
-def build_messages_for_openai(conversation, user_message, attached_note_ids, attached_resource_ids):
-    """Build the messages array for OpenAI API including context from attachments"""
+def build_messages_for_llm(conversation, user_message, attached_note_ids, attached_resource_ids, provider):
+    """Build the messages array for LLM API including context from attachments"""
     messages = []
     
     # Add system message
@@ -99,13 +88,15 @@ def build_messages_for_openai(conversation, user_message, attached_note_ids, att
         if notes:
             context_parts.append(build_context_from_notes(notes))
     
+    # Use RAG to retrieve relevant chunks from attached resources
     if attached_resource_ids:
-        resources = Resource.query.filter(
-            Resource.id.in_(attached_resource_ids),
-            Resource.user_id == current_user.id
-        ).all()
-        if resources:
-            context_parts.append(build_context_from_resources(resources))
+        rag_context = build_rag_context(
+            query_text=user_message,
+            resource_ids=attached_resource_ids,
+            top_k=5  # Retrieve top 5 most relevant chunks
+        )
+        if rag_context:
+            context_parts.append(rag_context)
     
     # Combine user message with context
     full_message = user_message
@@ -119,10 +110,40 @@ def build_messages_for_openai(conversation, user_message, attached_note_ids, att
     })
     
     # Truncate if needed to fit token limits
-    max_tokens = current_app.config.get('OPENAI_MAX_TOKENS', 4000)
-    messages = truncate_context(messages, max_tokens)
+    max_tokens = int(provider.get_context_limit() * 0.5)  # Use 50% for context, leave room for response
+    messages = truncate_context_with_provider(messages, max_tokens, provider)
     
     return messages
+
+
+def truncate_context_with_provider(messages, max_tokens, provider):
+    """Truncate conversation history to fit within token limit while preserving recent context"""
+    if not messages:
+        return messages
+    
+    # Always keep system message
+    system_message = messages[0] if messages[0].get('role') == 'system' else None
+    conversation_messages = messages[1:] if system_message else messages
+    
+    # Count tokens for system message
+    token_count = provider.count_tokens(system_message['content']) if system_message else 0
+    
+    # Add messages from most recent backwards until we hit the limit
+    truncated_messages = []
+    for message in reversed(conversation_messages):
+        message_tokens = provider.count_tokens(message['content']) + 4  # +4 for message formatting
+        
+        if token_count + message_tokens > max_tokens:
+            break
+        
+        token_count += message_tokens
+        truncated_messages.insert(0, message)
+    
+    # Prepend system message if it exists
+    if system_message:
+        truncated_messages.insert(0, system_message)
+    
+    return truncated_messages
 
 
 @bp.route('/send', methods=['POST'])
@@ -169,29 +190,42 @@ def send_message():
         db.session.add(user_msg)
         db.session.commit()
         
-        # Build messages for OpenAI
-        messages = build_messages_for_openai(
+        # Get LLM provider
+        provider = get_llm_provider()
+        
+        # Build messages for LLM
+        messages = build_messages_for_llm(
             conversation, 
             user_message, 
             attached_note_ids, 
-            attached_resource_ids
+            attached_resource_ids,
+            provider
         )
         
-        # Call OpenAI API
-        client = get_openai_client()
-        model = current_app.config.get('OPENAI_MODEL', 'gpt-4o-mini')
+        # Call LLM API
         temperature = current_app.config.get('OPENAI_TEMPERATURE', 0.7)
-        
-        response = client.chat.completions.create(
-            model=model,
+        assistant_message = provider.chat(
             messages=messages,
             temperature=temperature,
             max_tokens=2000
         )
         
-        # Extract response
-        assistant_message = response.choices[0].message.content
-        usage = response.usage
+        # Calculate token usage (approximate for local models)
+        input_text = '\n'.join([m['content'] for m in messages])
+        input_tokens = provider.count_tokens(input_text)
+        output_tokens = provider.count_tokens(assistant_message)
+        total_tokens = input_tokens + output_tokens
+        
+        # Get model identifier
+        provider_type = current_app.config.get('LLM_PROVIDER', 'ollama')
+        if provider_type == 'ollama':
+            model_used = current_app.config.get('OLLAMA_CHAT_MODEL', 'mistral:7b')
+            cost = 0.0  # Local inference = free
+        else:
+            model_used = current_app.config.get('OPENAI_MODEL', 'gpt-4o-mini')
+            # Estimate cost for OpenAI (keeping legacy function for OpenAI)
+            from .ai_utils import estimate_cost
+            cost = estimate_cost(input_tokens, output_tokens, model_used)
         
         # Save assistant response to database
         assistant_msg = ChatMessage(
@@ -199,10 +233,10 @@ def send_message():
             content=assistant_message,
             conversation_id=conversation.id,
             user_id=current_user.id,
-            model_used=model,
-            input_tokens=usage.prompt_tokens,
-            output_tokens=usage.completion_tokens,
-            total_tokens=usage.total_tokens
+            model_used=model_used,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens
         )
         db.session.add(assistant_msg)
         
@@ -213,18 +247,15 @@ def send_message():
         
         db.session.commit()
         
-        # Calculate cost
-        cost = estimate_cost(usage.prompt_tokens, usage.completion_tokens, model)
-        
         return jsonify({
             'success': True,
             'conversation_id': conversation.id,
             'user_message': user_msg.to_dict(),
             'assistant_message': assistant_msg.to_dict(),
             'usage': {
-                'input_tokens': usage.prompt_tokens,
-                'output_tokens': usage.completion_tokens,
-                'total_tokens': usage.total_tokens,
+                'input_tokens': input_tokens,
+                'output_tokens': output_tokens,
+                'total_tokens': total_tokens,
                 'estimated_cost': cost
             }
         })

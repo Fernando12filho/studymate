@@ -35,6 +35,11 @@ class Topic(db.Model):
         cascade="all, delete-orphan",
         backref=db.backref("parent_topic", remote_side=[id])
     )
+    
+    # Relationships with cascade delete for resources and notes
+    resources = relationship("Resource", back_populates="topic", cascade="all, delete-orphan")
+    notes = relationship("Note", back_populates="topic", cascade="all, delete-orphan")
+    
     def __repr__(self) -> str:
         return f"<Topic {self.id} {self.name}>"
     
@@ -89,7 +94,8 @@ class Resource(db.Model):
     )
 
     user = relationship("User")
-    topic = relationship("Topic", backref="resources")
+    topic = relationship("Topic", back_populates="resources")
+    chunks = relationship("ResourceChunk", back_populates="resource", cascade="all, delete-orphan")
 
     def is_pdf(self) -> bool:
         """Check if resource is a PDF file"""
@@ -191,7 +197,7 @@ class ResourceChunk(db.Model):
     
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     
-    resource = relationship("Resource", backref="chunks")
+    resource = relationship("Resource", back_populates="chunks")
 
 class Note(db.Model):
     __tablename__ = "note"
@@ -223,7 +229,7 @@ class Note(db.Model):
     )
 
     user = relationship("User")
-    topic = relationship("Topic", backref="notes")
+    topic = relationship("Topic", back_populates="notes")
 
 class Flashcard(db.Model):
     __tablename__ = "flashcard"

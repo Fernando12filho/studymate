@@ -223,9 +223,42 @@ Contributions welcome! Areas of interest:
 
 **More help:** See [docs/local-ai-setup.md](docs/local-ai-setup.md)
 
+## 🤝 Contributing
+
+Contributions are welcome! We'd love your help making Studymate better.
+
+**Ways to contribute:**
+- 🐛 Report bugs
+- 💡 Suggest features
+- 📝 Improve documentation
+- 🧪 Add tests
+- 🎨 Enhance UI/UX
+- 🔬 Test on different hardware
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+**Areas we need help:**
+- Cross-platform testing (Windows, Linux, macOS)
+- Performance benchmarking
+- Model comparison studies
+- Unit and integration tests
+- Advanced RAG features
+
 ## 📝 License
 
-[To Be Determined - Suggest MIT or GPL3]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**TL;DR:** You can freely use, modify, and distribute this software, even for commercial purposes, as long as you include the original copyright and license notice.
+
+## 🛡️ Security
+
+See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities responsibly.
+
+## 📧 Contact
+
+- **GitHub**: [@fgmelofilho](https://github.com/fgmelofilho) *(update with your username)*
+- **LinkedIn**: [Fernando Guimaraes](https://linkedin.com/in/yourprofile) *(update with your profile)*
+- **Email**: fgmelofilho@gmail.com
 
 ## 🙏 Acknowledgments
 

@@ -142,18 +142,6 @@ OLLAMA_BASE_URL=http://localhost:11434
 - Chat: `mistral:7b` ⭐ (default)
 - Embedding: `nomic-embed-text` ⭐ (default)
 
-## 📊 Performance
-
-Typical performance with Mistral 7B on consumer hardware:
-
-| Hardware | Response Time | RAM Usage |
-|----------|---------------|-----------|
-| CPU (Intel i5) | 2-5 seconds | 6-8GB |
-| GPU (NVIDIA MX) | 1-2 seconds | 8GB |
-| Apple M1/M2 | 0.5-1 second | 6GB |
-
-First response loads the model (slower), subsequent responses are faster.
-
 ## 🏗️ Architecture
 
 ```
